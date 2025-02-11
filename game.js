@@ -31,6 +31,8 @@ const brickPadding = 10;
 const brickOffsetTop = 30;
 const brickOffsetLeft = 30;
 
+let score = 0;
+
 const bricks = [];
 
 for (let c = 0; c < brickColumnCount; c++) {
@@ -73,10 +75,22 @@ function collisionDetection() {
         ) {
           dy = -dy;
           b.status = 0;
+          score++;
+          if(score === brickRowCount * brickColumnCount){
+            alert("YOU WIN, CONGRATULATIONS!");
+            document.location.reload();
+            clearInterval(interval);
+          }
         }
       }
     }
   }
+}
+
+function drawScore(){
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText(`Score: ${score}`, 8, 20);
 }
 
 function getRandomHexColor() {
@@ -139,6 +153,7 @@ function draw() {
   drawBricks();
   drawBall(ballColor);
   drawPaddle();
+  drawScore();
   collisionDetection();
   ballSpeedMod -= ballSpeedMod > 0 ? friction : 0;
 
@@ -152,7 +167,7 @@ function draw() {
     ballColor = getRandomHexColor();
   } else if (y + dy > canvas.height - ballRadius - paddleHeight / 2) {
     if (x > paddleX && x < paddleX + paddleWidth) {
-      ballSpeedMod = 2;
+      ballSpeedMod = 1.5;
       dy = -dy;
     } else {
       alert("GAME OVER");
