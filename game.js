@@ -13,15 +13,15 @@ const brickHeight = 20;
 const brickPadding = 10;
 const brickOffsetTop = 30;
 const brickOffsetLeft = 30;
-const maxBallSpeed = 4;
-const minBallSpeed = 2;
+const maxBallSpeed = 4.5;
+const minBallSpeed = 3;
 const paddleSpeed = 5;
 
 // Game variables
 let x = canvas.width / 2;
 let y = canvas.height - paddleHeight - ballRadius;
-let dx = 0;
-let dy = 0;
+let dx = 3;
+let dy = 3;
 let paddleX = (canvas.width - paddleWidth) / 2;
 let rightPressed = false;
 let leftPressed = false;
@@ -198,9 +198,9 @@ function renderElements() {
 function resetBall() {
   ballLocked = true;
   x = paddleX + paddleWidth / 2;
-  y = canvas.height - paddleHeight - ballRadius - 5;
-  dx = 0;
-  dy = 0;
+  y = canvas.height - paddleHeight - ballRadius;
+  // dx = 0;
+  // dy = 0;
 }
 
 function draw() {
@@ -213,6 +213,7 @@ function draw() {
   // Update ball position if locked to paddle
   if (ballLocked) {
     x = paddleX + paddleWidth / 2;
+    y = canvas.height - paddleHeight - ballRadius;
   } else {
     // Normal ball physics
     if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
@@ -223,9 +224,13 @@ function draw() {
     if (y + dy < ballRadius) {
       dy = -dy;
       ballColor = getRandomHexColor();
-    } else if (y + dy > canvas.height - ballRadius - paddleHeight / 2) {
-      if (x > paddleX && x < paddleX + paddleWidth) {
-        const hitPosition = (x - (paddleX + paddleWidth / 2)) / (paddleWidth / 2);
+    } else if (y + dy > canvas.height - ballRadius - paddleHeight) {
+      const ballLeft = x - ballRadius / 2;
+      const ballRight = x + ballRadius / 2;
+
+      if (ballRight > paddleX && ballLeft < paddleX + paddleWidth) {
+        const contactPoint = Math.max(ballLeft, Math.min(x, ballRight));
+        const hitPosition = (contactPoint - (paddleX + paddleWidth / 2)) / (paddleWidth / 2);
         calculateNewBallVelocity(hitPosition);
         y = canvas.height - paddleHeight - ballRadius;
         ballColor = getRandomHexColor();
@@ -259,5 +264,5 @@ function draw() {
 
 // Initialize game
 gameState = 'playing';
-resetBall();
+// resetBall();
 draw();
