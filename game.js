@@ -10,10 +10,14 @@ let y = canvas.height - 30;
 
 let dx = 2;
 let dy = -2;
-let ballSpeedMod = 0.5;
-const friction = 0.01;
+const maxBallSpeed = 5; // Maximum ball speed
+const minBallSpeed = 2; // Minimum ball speed
+// let ballSpeedMod = 0.5;
+// const friction = 0.01;
 
 let paddleSpeed = 5;
+let lastPaddleX = 0; // Store previous paddle position
+let paddleVelocityX = 0; // Track paddle's horizontal velocity
 
 const paddleHeight = 10;
 const paddleWidth = 75;
@@ -22,6 +26,7 @@ let rightPressed = false;
 let leftPressed = false;
 
 let paddleX = (canvas.width - paddleWidth) / 2;
+let gameState = 'playing';
 
 const brickRowCount = 3;
 const brickColumnCount = 5;
@@ -32,6 +37,7 @@ const brickOffsetTop = 30;
 const brickOffsetLeft = 30;
 
 let score = 0;
+let lives = 3;
 
 const bricks = [];
 
@@ -63,10 +69,17 @@ function keyUpHandler(e) {
 
 document.addEventListener("mousemove", mouseMoveHandler, false);
 
-function mouseMoveHandler(e){
+function mouseMoveHandler(e) {
   const relativeX = e.clientX - canvas.offsetLeft;
-  if(relativeX > 0 && relativeX < canvas.width){
+  if (
+    relativeX - paddleWidth / 2 > 0 &&
+    relativeX + paddleWidth / 2 < canvas.width
+  ) {
     paddleX = relativeX - paddleWidth / 2;
+  } else if (relativeX - paddleWidth / 2 <= 0) {
+    paddleX = 0;
+  } else if (relativeX + paddleWidth / 2 >= canvas.width) {
+    paddleX = canvas.width - paddleWidth;
   }
 }
 
@@ -85,10 +98,8 @@ function collisionDetection() {
           dy = -dy;
           b.status = 0;
           score++;
-          if(score === brickRowCount * brickColumnCount){
-            alert("YOU WIN, CONGRATULATIONS!");
-            document.location.reload();
-            clearInterval(interval);
+          if (score === brickRowCount * brickColumnCount) {
+            gameState = 'won';
           }
         }
       }
@@ -96,10 +107,16 @@ function collisionDetection() {
   }
 }
 
-function drawScore(){
+function drawScore() {
   ctx.font = "16px Arial";
   ctx.fillStyle = "#0095DD";
   ctx.fillText(`Score: ${score}`, 8, 20);
+}
+
+function drawLives() {
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText(`Lives: ${lives}`, canvas.width - 65, 20);
 }
 
 function getRandomHexColor() {
@@ -157,50 +174,125 @@ function drawBricks() {
   }
 }
 
+function updatePaddleVelocity() {
+  paddleVelocityX = paddleX - lastPaddleX;
+  lastPaddleX = paddleX;
+}
+
+function calculateNewBallVelocity(hitPosition) {
+  // hitPosition is between -1 (left edge) and 1 (right edge)
+
+  // Calculate base angle (in radians)
+  // Max angle of 75 degrees (π/2.4 radians)
+  const maxAngle = Math.PI / 2.4;
+  const angle = hitPosition * maxAngle;
+
+  // Calculate current ball speed
+  const currentSpeed = Math.sqrt(dx * dx + dy * dy);
+
+  // Add some of the paddle's horizontal velocity to the ball
+  const paddleInfluence = paddleVelocityX * 0.2;
+
+  // Calculate new velocities
+  let newSpeed = currentSpeed + Math.abs(paddleInfluence);
+
+  // Clamp speed between min and max values
+  newSpeed = Math.max(minBallSpeed, Math.min(maxBallSpeed, newSpeed));
+
+  // Calculate new dx and dy based on the angle and speed
+  dx = newSpeed * Math.sin(angle) + paddleInfluence;
+  dy = -newSpeed * Math.cos(angle); // Negative because we want the ball to go up
+
+  // Ensure dx stays within reasonable bounds
+  dx = Math.max(Math.min(dx, maxBallSpeed), -maxBallSpeed);
+}
+
+function showEndMessage(){
+  if(gameState === 'won'){
+    alert("YOU WIN, CONGRATULATIONS");
+    document.location.reload();
+  } else if(gameState === 'lost'){
+    alert("GAME OVER");
+    document.location.reload();
+  }
+}
+
 function draw() {
+  if(gameState === 'paused') return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBricks();
   drawBall(ballColor);
   drawPaddle();
   drawScore();
+  drawLives();
   collisionDetection();
-  ballSpeedMod -= ballSpeedMod > 0 ? friction : 0;
+  
+  updatePaddleVelocity();
 
+  // Ball-wall collision
   if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
-    dx = -dx;
-    ballColor = getRandomHexColor();
+      dx = -dx;
+      ballColor = getRandomHexColor();
   }
 
   if (y + dy < ballRadius) {
-    dy = -dy;
-    ballColor = getRandomHexColor();
-  } else if (y + dy > canvas.height - ballRadius - paddleHeight / 2) {
-    if (x > paddleX && x < paddleX + paddleWidth) {
-      ballSpeedMod = 1.5;
       dy = -dy;
-    } else {
-      alert("GAME OVER");
-      document.location.reload();
-      clearInterval(interval);
-    }
+      ballColor = getRandomHexColor();
+  } else if (y + dy > canvas.height - ballRadius - paddleHeight / 2) {
+      // Paddle collision
+      if (x > paddleX && x < paddleX + paddleWidth) {
+          // Calculate hit position on paddle (-1 to 1)
+          const hitPosition = (x - (paddleX + paddleWidth / 2)) / (paddleWidth / 2);
+          
+          calculateNewBallVelocity(hitPosition);
+          
+          // Ensure the ball moves upward
+          y = canvas.height - paddleHeight - ballRadius;
+          
+          ballColor = getRandomHexColor();
+      } else {
+          // Ball falls below paddle
+          lives--;
+          if (!lives) {
+              gameState = 'lost';
+          } else {
+              x = canvas.width / 2;
+              y = canvas.height - 30;
+              dx = 2;
+              dy = -2;
+              paddleX = (canvas.width - paddleWidth) / 2;
+          }
+      }
   }
 
-  if (y + dy > canvas.height - ballRadius || y + dy < ballRadius) {
-    dy = -dy;
-    ballColor = getRandomHexColor();
-  }
-
+  // Paddle movement with constraints
   if (rightPressed) {
-    paddleX = Math.min(paddleX + paddleSpeed, canvas.width - paddleWidth);
+      paddleX = Math.min(paddleX + paddleSpeed, canvas.width - paddleWidth);
   } else if (leftPressed) {
-    paddleX = Math.max(paddleX - paddleSpeed, 0);
+      paddleX = Math.max(paddleX - paddleSpeed, 0);
   }
+
   x += dx;
-  y += dy > 0 ? dy + ballSpeedMod : dy - ballSpeedMod;
+  y += dy;
+
+  if (gameState === 'playing') {
+    requestAnimationFrame(draw);
+  } else {
+    // One final frame to show the final state
+    requestAnimationFrame(() => {
+      drawBricks();
+      drawBall(ballColor);
+      drawPaddle();
+      drawScore();
+      drawLives();
+      // Show message after final render
+      requestAnimationFrame(showEndMessage);
+    });
+  }
 }
 
 function startGame() {
-  interval = setInterval(draw, 10);
+  draw();
 }
 
 const startButton = document.getElementById("runButton");
