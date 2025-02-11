@@ -61,6 +61,15 @@ function keyUpHandler(e) {
   }
 }
 
+document.addEventListener("mousemove", mouseMoveHandler, false);
+
+function mouseMoveHandler(e){
+  const relativeX = e.clientX - canvas.offsetLeft;
+  if(relativeX > 0 && relativeX < canvas.width){
+    paddleX = relativeX - paddleWidth / 2;
+  }
+}
+
 function collisionDetection() {
   for (let c = 0; c < brickColumnCount; c++) {
     for (let r = 0; r < brickRowCount; r++) {
