@@ -4,24 +4,24 @@ const ctx = canvas.getContext("2d");
 
 // Game constants
 const paddleHeight = 10;
-const paddleWidth = 75;
+const paddleWidth = 80;
 const ballRadius = 10;
 const brickRowCount = 3;
-const brickColumnCount = 5;
+const brickColumnCount = 6;
 const brickWidth = 75;
 const brickHeight = 20;
-const brickPadding = 10;
+const brickPadding = 15;
 const brickOffsetTop = 30;
 const brickOffsetLeft = 30;
 const maxBallSpeed = 4.5;
-const minBallSpeed = 3;
-const paddleSpeed = 5;
+const minBallSpeed = 2.5;
+const paddleSpeed = 4;
 
 // Game variables
 let x = canvas.width / 2;
 let y = canvas.height - paddleHeight - ballRadius;
-let dx = 3;
-let dy = 3;
+let dx = 2.5;
+let dy = 2.5;
 let paddleX = (canvas.width - paddleWidth) / 2;
 let rightPressed = false;
 let leftPressed = false;
