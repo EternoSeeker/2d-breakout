@@ -13,8 +13,8 @@ const brickHeight = 20;
 const brickPadding = 15;
 const brickOffsetTop = 30;
 const brickOffsetLeft = 30;
-const maxBallSpeed = 4.5;
 const minBallSpeed = 2.5;
+const maxBallSpeed = minBallSpeed * 1.8;
 const paddleSpeed = 4;
 
 // Game variables

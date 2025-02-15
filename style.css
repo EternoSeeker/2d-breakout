@@ -9,25 +9,26 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  background: linear-gradient(135deg, #355798, #183970);
   font-family: Arial, sans-serif;
 }
 
 canvas {
   background: #eee;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  border: 3px solid #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.625rem 1.875rem rgba(0, 0, 0, 0.3);
+  border: 0.1875rem solid #fff;
 }
 
 /* Optional game title */
 h1 {
   position: absolute;
-  top: 20px;
+  top: 2rem;
   color: white;
   font-size: 3rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow: 0.125rem 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
 }
+
 
 .tourney-heading {
   font-family: "Tourney", serif;
