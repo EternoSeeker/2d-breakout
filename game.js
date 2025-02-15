@@ -15,7 +15,7 @@ const brickPadding = 15;
 const brickOffsetTop = 30;
 const brickOffsetLeft = 30;
 const minBallSpeed = 2.5;
-const maxBallSpeed = minBallSpeed * 1.8;
+const maxBallSpeed = minBallSpeed * 2.5;
 const paddleSpeed = 4.5;
 
 // Game variables
@@ -23,6 +23,8 @@ let x = canvas.width / 2;
 let y = canvas.height - paddleHeight - ballRadius;
 let dx = 2.5;
 let dy = 2.5;
+let yDir = -1;
+let friction = 0.01;
 let paddleX = (canvas.width - paddleWidth) / 2;
 let rightPressed = false;
 let leftPressed = false;
@@ -77,7 +79,8 @@ function keyUpHandler(e) {
 function launchBall() {
   if (ballLocked && gameState === "playing") {
     ballLocked = false;
-    dy = -minBallSpeed; // Move upward
+    yDir = -1;
+    dy = yDir * minBallSpeed; // Move upward
     dx = 0; // Start with vertical movement only
   }
 }
@@ -155,7 +158,7 @@ function collisionDetection() {
           y + ballRadius > b.y &&
           y - ballRadius < b.y + brickHeight
         ) {
-          dy = -dy;
+          yDir = -yDir;
           b.status = 0;
           score++;
           if (score === brickRowCount * brickColumnCount) {
@@ -182,7 +185,8 @@ function calculateNewBallVelocity(hitPosition) {
   newSpeed = Math.max(minBallSpeed, Math.min(maxBallSpeed, newSpeed));
 
   dx = newSpeed * Math.sin(angle) + paddleInfluence;
-  dy = -newSpeed * Math.cos(angle);
+  yDir = -1;
+  dy = newSpeed * Math.cos(angle);
   dx = Math.max(Math.min(dx, maxBallSpeed), -maxBallSpeed);
 }
 
@@ -204,10 +208,8 @@ function renderElements() {
 
 function resetBall() {
   ballLocked = true;
-  x = paddleX + paddleWidth / 2;
-  y = canvas.height - paddleHeight - ballRadius;
-  // dx = 0;
-  // dy = 0;
+  // x = paddleX + paddleWidth / 2;
+  // y = canvas.height - paddleHeight - ballRadius;
 }
 
 function draw() {
@@ -223,15 +225,17 @@ function draw() {
     y = canvas.height - paddleHeight - ballRadius;
   } else {
     // Normal ball physics
+    dy -= (dy > minBallSpeed) ? friction : 0;
     if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
       dx = -dx;
       ballColor = getRandomHexColor();
     }
 
-    if (y + dy < ballRadius) {
-      dy = -dy;
+    if (y +  (yDir * dy) < ballRadius) {
+      yDir = -yDir;
+      // dy = -dy;
       ballColor = getRandomHexColor();
-    } else if (y + dy > canvas.height - ballRadius - paddleHeight) {
+    } else if (y + (yDir * dy) > canvas.height - ballRadius - paddleHeight) {
       const ballLeft = x - ballRadius / 2;
       const ballRight = x + ballRadius / 2;
 
@@ -253,7 +257,7 @@ function draw() {
     }
 
     x += dx;
-    y += dy;
+    y += (yDir * dy);
   }
 
   // Paddle movement
