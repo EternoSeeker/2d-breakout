@@ -3,8 +3,9 @@ const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
 
 // Game constants
-const paddleHeight = 10;
-const paddleWidth = 80;
+const paddleHeight = 16;
+const paddleWidth = 90;
+const paddleBorderRadius = 7;
 const ballRadius = 10;
 const brickRowCount = 3;
 const brickColumnCount = 6;
@@ -15,7 +16,7 @@ const brickOffsetTop = 30;
 const brickOffsetLeft = 30;
 const minBallSpeed = 2.5;
 const maxBallSpeed = minBallSpeed * 1.8;
-const paddleSpeed = 4;
+const paddleSpeed = 4.5;
 
 // Game variables
 let x = canvas.width / 2;
@@ -29,9 +30,9 @@ let lastPaddleX = paddleX;
 let paddleVelocityX = 0;
 let score = 0;
 let lives = 3;
-let gameState = 'idle';
+let gameState = "idle";
 let ballColor = "#0095DD";
-let ballLocked = true;  // New variable to track if ball is locked to paddle
+let ballLocked = true; // New variable to track if ball is locked to paddle
 
 // Initialize bricks
 const bricks = [];
@@ -52,7 +53,8 @@ function keyDownHandler(e) {
     rightPressed = true;
   } else if (e.key === "Left" || e.key === "ArrowLeft") {
     leftPressed = true;
-  } else if (e.key === " " && ballLocked) {  // Spacebar handler
+  } else if (e.key === " " && ballLocked) {
+    // Spacebar handler
     launchBall();
   }
 }
@@ -73,26 +75,21 @@ function keyUpHandler(e) {
 // }
 
 function launchBall() {
-  if (ballLocked && gameState === 'playing') {
+  if (ballLocked && gameState === "playing") {
     ballLocked = false;
-    dy = -minBallSpeed;  // Move upward
-    dx = 0;  // Start with vertical movement only
+    dy = -minBallSpeed; // Move upward
+    dx = 0; // Start with vertical movement only
   }
 }
 
 function getRandomHexColor() {
-  let color;
-  do {
-    color = "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0");
-  } while (getLuminance(color) > 0.8);
-  return color;
-}
+  let chooseColors = [
+    "03608e", "0383c1", "02a5f4", "34a0a4", "006078",
+    "03979e", "488fda", "0e7c86", "023e8a", "0077b6",
+    "0096c7", "00b4d8", "48cae4", "005f73", "0a9396",
+  ];
 
-function getLuminance(hex) {
-  const r = parseInt(hex.substr(1, 2), 16) / 255;
-  const g = parseInt(hex.substr(3, 2), 16) / 255;
-  const b = parseInt(hex.substr(5, 2), 16) / 255;
-  return 0.299 * r + 0.587 * g + 0.114 * b;
+  return "#" + chooseColors[Math.floor(Math.random() * chooseColors.length)];
 }
 
 function drawBall(color = "#0095DD") {
@@ -105,8 +102,14 @@ function drawBall(color = "#0095DD") {
 
 function drawPaddle() {
   ctx.beginPath();
-  ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
-  ctx.fillStyle = "#0095DD";
+  ctx.roundRect(
+    paddleX,
+    canvas.height - paddleHeight,
+    paddleWidth,
+    paddleHeight,
+    paddleBorderRadius
+  );
+  ctx.fillStyle = "#00538f";
   ctx.fill();
   ctx.closePath();
 }
@@ -146,13 +149,17 @@ function collisionDetection() {
     for (let r = 0; r < brickRowCount; r++) {
       const b = bricks[c][r];
       if (b.status === 1) {
-        if (x + ballRadius > b.x && x - ballRadius < b.x + brickWidth &&
-            y + ballRadius > b.y && y - ballRadius < b.y + brickHeight) {
+        if (
+          x + ballRadius > b.x &&
+          x - ballRadius < b.x + brickWidth &&
+          y + ballRadius > b.y &&
+          y - ballRadius < b.y + brickHeight
+        ) {
           dy = -dy;
           b.status = 0;
           score++;
           if (score === brickRowCount * brickColumnCount) {
-            gameState = 'won';
+            gameState = "won";
           }
           ballColor = getRandomHexColor();
         }
@@ -173,7 +180,7 @@ function calculateNewBallVelocity(hitPosition) {
   const paddleInfluence = paddleVelocityX * 0.2;
   let newSpeed = currentSpeed + Math.abs(paddleInfluence);
   newSpeed = Math.max(minBallSpeed, Math.min(maxBallSpeed, newSpeed));
-  
+
   dx = newSpeed * Math.sin(angle) + paddleInfluence;
   dy = -newSpeed * Math.cos(angle);
   dx = Math.max(Math.min(dx, maxBallSpeed), -maxBallSpeed);
@@ -204,8 +211,8 @@ function resetBall() {
 }
 
 function draw() {
-  if (gameState === 'paused') return;
-  
+  if (gameState === "paused") return;
+
   renderElements();
   collisionDetection();
   updatePaddleVelocity();
@@ -230,14 +237,15 @@ function draw() {
 
       if (ballRight > paddleX && ballLeft < paddleX + paddleWidth) {
         const contactPoint = Math.max(ballLeft, Math.min(x, ballRight));
-        const hitPosition = (contactPoint - (paddleX + paddleWidth / 2)) / (paddleWidth / 2);
+        const hitPosition =
+          (contactPoint - (paddleX + paddleWidth / 2)) / (paddleWidth / 2);
         calculateNewBallVelocity(hitPosition);
         y = canvas.height - paddleHeight - ballRadius;
         ballColor = getRandomHexColor();
       } else {
         lives--;
         if (!lives) {
-          gameState = 'lost';
+          gameState = "lost";
         } else {
           resetBall();
         }
@@ -255,14 +263,14 @@ function draw() {
     paddleX = Math.max(paddleX - paddleSpeed, 0);
   }
 
-  if (gameState === 'playing') {
+  if (gameState === "playing") {
     requestAnimationFrame(draw);
-  } else if (gameState === 'won' || gameState === 'lost') {
+  } else if (gameState === "won" || gameState === "lost") {
     showEndMessage();
   }
 }
 
 // Initialize game
-gameState = 'playing';
+gameState = "playing";
 // resetBall();
 draw();
