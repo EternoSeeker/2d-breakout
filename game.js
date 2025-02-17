@@ -3,14 +3,14 @@ const GameConfig = {
     HEIGHT: 15,
     WIDTH: 85,
     BORDER_RADIUS: 7,
-    SPEED: 5,
+    SPEED: 450,
     COLOR: "#00538f",
   },
   BALL: {
     RADIUS: 9,
-    MIN_SPEED: 3,
-    MAX_SPEED: 6,
-    FRICTION: 0.01,
+    MIN_SPEED: 275,
+    MAX_SPEED: 500,
+    FRICTION: 10,
   },
   BRICK: {
     ROW_COUNT: 4,
@@ -51,6 +51,9 @@ class Ball extends GameObject {
     this.yDir = -1;
     this.color = "#0095DD";
     this.locked = true;
+
+    this.actualX = this.x;
+    this.actualY = this.y;
   }
 
   draw(ctx) {
@@ -76,34 +79,39 @@ class Ball extends GameObject {
     this.y = this.canvas.height - GameConfig.PADDLE.HEIGHT - this.radius;
   }
 
-  update(paddle) {
+  update(paddle, deltaTime) {
     if (this.locked) {
       this.x = paddle.x + paddle.width / 2;
       this.y = this.canvas.height - GameConfig.PADDLE.HEIGHT - this.radius;
+      this.actualX = this.x;
+      this.actualY = this.y;
       return;
     }
 
     // Apply Friction
-    this.dy -=
-      this.dy > GameConfig.BALL.MIN_SPEED ? GameConfig.BALL.FRICTION : 0;
+    this.dy -= (this.dy > GameConfig.BALL.MIN_SPEED ? GameConfig.BALL.FRICTION : 0) * deltaTime;
+
+    // update position using delta time
+    this.actualX += this.dx * deltaTime;
+    this.actualY += this.yDir * this.dy * deltaTime;
+
+    // Update integer positions for rendering
+    this.x = Math.round(this.actualX);
+    this.y = Math.round(this.actualY);
 
     // Handle wall collision
     if (
-      this.x + this.dx > this.canvas.width - this.radius ||
-      this.x + this.dx < this.radius
+      this.x + this.dx * deltaTime > this.canvas.width - this.radius ||
+      this.x + this.dx * deltaTime < this.radius
     ) {
       this.dx = -this.dx;
       this.changeColor();
     }
 
-    if (this.y + this.yDir * this.dy < this.radius) {
+    if (this.y + this.yDir * this.dy * deltaTime < this.radius) {
       this.yDir = -this.yDir;
       this.changeColor();
     }
-
-    // Update position
-    this.x += this.dx;
-    this.y += this.yDir * this.dy;
   }
 
   changeColor() {
@@ -157,13 +165,13 @@ class Paddle extends GameObject {
     ctx.closePath();
   }
 
-  move(direction) {
-    const newX = this.x + direction * this.speed;
+  move(direction, deltaTime) {
+    const newX = this.x + direction * this.speed * deltaTime;
     this.x = Math.max(0, Math.min(newX, this.canvas.width - this.width));
   }
 
-  updateVelocity() {
-    this.velocityX = this.x - this.lastX;
+  updateVelocity(deltaTime) {
+    this.velocityX = (this.x - this.lastX) / deltaTime;
     this.lastX = this.x;
   }
 
@@ -246,6 +254,9 @@ class Game {
     this.score = 0;
     this.lives = 3;
     this.gameState = "idle";
+    this.lastTime = 0;
+    this.targetFPS = 60;
+    this.timeStep = 1000 / this.targetFPS;
 
     this.ball = new Ball(this.canvas);
     this.paddle = new Paddle(this.canvas);
@@ -303,19 +314,19 @@ class Game {
     this.keyState = keyState;
   }
 
-  update() {
+  update(deltaTime) {
     if (this.keyState.right) {
-      this.paddle.move(1);
+      this.paddle.move(1, deltaTime);
     } else if (this.keyState.left) {
-      this.paddle.move(-1);
+      this.paddle.move(-1, deltaTime);
     }
 
-    this.paddle.updateVelocity();
-    this.ball.update(this.paddle);
+    this.paddle.updateVelocity(deltaTime);
+    this.ball.update(this.paddle, deltaTime);
 
     if (
       !this.ball.locked &&
-      this.ball.y + this.ball.yDir * this.ball.dy >
+      this.ball.y + this.ball.yDir * this.ball.dy * deltaTime >
         this.canvas.height - this.ball.radius - this.paddle.height
     ) {
       if (!this.paddle.handleCollision(this.ball)) {
@@ -370,11 +381,20 @@ class Game {
     this.ctx.fillText(`Lives: ${this.lives}`, this.canvas.width - 65, 20);
   }
 
-  gameLoop() {
+  gameLoop(currentTime) {
     if (this.gameState === "playing") {
-      this.update();
+      if(!this.lastTime){
+        this.lastTime = currentTime;
+      }
+
+      let deltaTime = (currentTime - this.lastTime) / 1000;
+
+      deltaTime = Math.min(deltaTime, 0.1); // Cap the maximum delta time to 100ms
+
+      this.update(deltaTime);
       this.draw();
-      requestAnimationFrame(() => this.gameLoop());
+      this.lastTime = currentTime;
+      requestAnimationFrame((time) => this.gameLoop(time));
     } else if (this.gameState === "won" || this.gameState === "lost") {
       this.showEndMessage(); // Can be end screen later, and allow user to restart
     }
@@ -397,12 +417,14 @@ class Game {
     this.gameState = "idle";
     this.ball.reset(this.paddle.x, this.paddle.width);
     this.bricks = this.createBricks();
+    this.ball.reset(this.paddle.x, this.paddle.width);
     this.start();
   }
 
   start() {
     this.gameState = "playing";
-    this.gameLoop();
+    this.lastTime = performance.now();
+    this.gameLoop(this.lastTime);
   }
 }
 
