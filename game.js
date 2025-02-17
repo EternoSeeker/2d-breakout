@@ -1,280 +1,411 @@
-// Canvas setup
-const canvas = document.getElementById("myCanvas");
-const ctx = canvas.getContext("2d");
+const GameConfig = {
+  PADDLE: {
+    HEIGHT: 15,
+    WIDTH: 85,
+    BORDER_RADIUS: 7,
+    SPEED: 5,
+    COLOR: "#00538f",
+  },
+  BALL: {
+    RADIUS: 9,
+    MIN_SPEED: 3,
+    MAX_SPEED: 6,
+    FRICTION: 0.01,
+  },
+  BRICK: {
+    ROW_COUNT: 4,
+    COLUMN_COUNT: 8,
+    WIDTH: 60,
+    HEIGHT: 15,
+    PADDING: 10,
+    OFFSET_TOP: 30,
+    OFFSET_LEFT: 20,
+    COLORS: ["0095dd", "1b63ab", "37327a", "520048"],
+  },
+};
 
-// Game constants
-const paddleHeight = 16;
-const paddleWidth = 90;
-const paddleBorderRadius = 7;
-const ballRadius = 10;
-const brickRowCount = 3;
-const brickColumnCount = 6;
-const brickWidth = 75;
-const brickHeight = 20;
-const brickPadding = 15;
-const brickOffsetTop = 30;
-const brickOffsetLeft = 30;
-const minBallSpeed = 2.5;
-const maxBallSpeed = minBallSpeed * 2.5;
-const paddleSpeed = 4.5;
+class GameObject {
+  constructor(x, y, width, height) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+  }
 
-// Game variables
-let x = canvas.width / 2;
-let y = canvas.height - paddleHeight - ballRadius;
-let dx = 2.5;
-let dy = 2.5;
-let yDir = -1;
-let friction = 0.01;
-let paddleX = (canvas.width - paddleWidth) / 2;
-let rightPressed = false;
-let leftPressed = false;
-let lastPaddleX = paddleX;
-let paddleVelocityX = 0;
-let score = 0;
-let lives = 3;
-let gameState = "idle";
-let ballColor = "#0095DD";
-let ballLocked = true; // New variable to track if ball is locked to paddle
+  draw(ctx) {}
+}
 
-// Initialize bricks
-const bricks = [];
-for (let c = 0; c < brickColumnCount; c++) {
-  bricks[c] = [];
-  for (let r = 0; r < brickRowCount; r++) {
-    bricks[c][r] = { x: 0, y: 0, status: 1 };
+class Ball extends GameObject {
+  constructor(canvas) {
+    super(
+      canvas.width / 2,
+      canvas.height - GameConfig.PADDLE.HEIGHT - GameConfig.BALL.RADIUS,
+      GameConfig.BALL.RADIUS * 2,
+      GameConfig.BALL.RADIUS * 2
+    );
+
+    this.canvas = canvas;
+    this.radius = GameConfig.BALL.RADIUS;
+    this.dx = GameConfig.BALL.MIN_SPEED;
+    this.dy = GameConfig.BALL.MIN_SPEED;
+    this.yDir = -1;
+    this.color = "#0095DD";
+    this.locked = true;
+  }
+
+  draw(ctx) {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+    ctx.closePath();
+  }
+
+  launch() {
+    if (this.locked) {
+      this.locked = false;
+      this.yDir = -1;
+      this.dy = this.yDir * GameConfig.BALL.MIN_SPEED;
+      this.dx = 0;
+    }
+  }
+
+  reset(paddleX, paddleWidth) {
+    this.locked = true;
+    this.x = paddleX + paddleWidth / 2;
+    this.y = this.canvas.height - GameConfig.PADDLE.HEIGHT - this.radius;
+  }
+
+  update(paddle) {
+    if (this.locked) {
+      this.x = paddle.x + paddle.width / 2;
+      this.y = this.canvas.height - GameConfig.PADDLE.HEIGHT - this.radius;
+      return;
+    }
+
+    // Apply Friction
+    this.dy -=
+      this.dy > GameConfig.BALL.MIN_SPEED ? GameConfig.BALL.FRICTION : 0;
+
+    // Handle wall collision
+    if (
+      this.x + this.dx > this.canvas.width - this.radius ||
+      this.x + this.dx < this.radius
+    ) {
+      this.dx = -this.dx;
+      this.changeColor();
+    }
+
+    if (this.y + this.yDir * this.dy < this.radius) {
+      this.yDir = -this.yDir;
+      this.changeColor();
+    }
+
+    // Update position
+    this.x += this.dx;
+    this.y += this.yDir * this.dy;
+  }
+
+  changeColor() {
+    const colors = [
+      "03608e",
+      "0383c1",
+      "02a5f4",
+      "34a0a4",
+      "006078",
+      "03979e",
+      "488fda",
+      "0e7c86",
+      "023e8a",
+      "0077b6",
+      "0096c7",
+      "00b4d8",
+      "48cae4",
+      "005f73",
+      "0a9396",
+    ];
+    this.color = "#" + colors[Math.floor(Math.random() * colors.length)];
   }
 }
 
-// Event listeners
-document.addEventListener("keydown", keyDownHandler, false);
-document.addEventListener("keyup", keyUpHandler, false);
-// document.addEventListener("mousemove", mouseMoveHandler, false);
+class Paddle extends GameObject {
+  constructor(canvas) {
+    super(
+      (canvas.width - GameConfig.PADDLE.WIDTH) / 2,
+      canvas.height - GameConfig.PADDLE.HEIGHT,
+      GameConfig.PADDLE.WIDTH,
+      GameConfig.PADDLE.HEIGHT
+    );
 
-function keyDownHandler(e) {
-  if (e.key === "Right" || e.key === "ArrowRight") {
-    rightPressed = true;
-  } else if (e.key === "Left" || e.key === "ArrowLeft") {
-    leftPressed = true;
-  } else if (e.key === " " && ballLocked) {
-    // Spacebar handler
-    launchBall();
+    this.canvas = canvas;
+    this.speed = GameConfig.PADDLE.SPEED;
+    this.lastX = this.x;
+    this.velocityX = 0;
+  }
+
+  draw(ctx) {
+    ctx.beginPath();
+    ctx.roundRect(
+      this.x,
+      this.y,
+      this.width,
+      this.height,
+      GameConfig.PADDLE.BORDER_RADIUS
+    );
+    ctx.fillStyle = GameConfig.PADDLE.COLOR;
+    ctx.fill();
+    ctx.closePath();
+  }
+
+  move(direction) {
+    const newX = this.x + direction * this.speed;
+    this.x = Math.max(0, Math.min(newX, this.canvas.width - this.width));
+  }
+
+  updateVelocity() {
+    this.velocityX = this.x - this.lastX;
+    this.lastX = this.x;
+  }
+
+  handleCollision(ball) {
+    const ballLeft = ball.x - ball.radius / 2;
+    const ballRight = ball.x + ball.radius / 2;
+
+    if (ballRight > this.x && ballLeft < this.x + this.width) {
+      const contactPoint = Math.max(ballLeft, Math.min(ball.x, ballRight));
+      const hitPosition =
+        (contactPoint - (this.x + this.width / 2)) / (this.width / 2);
+
+      // Calculate new ball velocity
+      const maxAngle = Math.PI / 3;
+      const angle = hitPosition * maxAngle;
+      const currentSpeed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+      const paddleInfluence = this.velocityX * 0.2;
+
+      let newSpeed = currentSpeed + Math.abs(paddleInfluence);
+      newSpeed = Math.max(
+        GameConfig.BALL.MIN_SPEED,
+        Math.min(GameConfig.BALL.MAX_SPEED, newSpeed)
+      );
+
+      ball.dx = newSpeed * Math.sin(angle) + paddleInfluence;
+      ball.yDir = -1;
+      ball.dy = newSpeed * Math.cos(angle);
+      ball.dx = Math.max(
+        Math.min(ball.dx, GameConfig.BALL.MAX_SPEED),
+        -GameConfig.BALL.MAX_SPEED
+      );
+
+      ball.y = this.y - ball.radius;
+      ball.changeColor();
+      return true;
+    }
+    return false;
   }
 }
 
-function keyUpHandler(e) {
-  if (e.key === "Right" || e.key === "ArrowRight") {
-    rightPressed = false;
-  } else if (e.key === "Left" || e.key === "ArrowLeft") {
-    leftPressed = false;
+class Brick extends GameObject {
+  constructor(x, y, color) {
+    super(x, y, GameConfig.BRICK.WIDTH, GameConfig.BRICK.HEIGHT);
+    this.color = color;
+    this.status = 1;
+  }
+
+  draw(ctx) {
+    if (this.status === 1) {
+      ctx.beginPath();
+      ctx.rect(this.x, this.y, this.width, this.height);
+      ctx.fillStyle = `#${this.color}`;
+      ctx.fill();
+      ctx.closePath();
+    }
+  }
+
+  handleCollision(ball) {
+    if (
+      this.status === 1 &&
+      ball.x + ball.radius > this.x &&
+      ball.x - ball.radius < this.x + this.width &&
+      ball.y + ball.radius > this.y &&
+      ball.y - ball.radius < this.y + this.height
+    ) {
+      ball.yDir = -ball.yDir;
+      this.status = 0;
+      ball.changeColor();
+      return true;
+    }
+    return false;
   }
 }
 
-// function mouseMoveHandler(e) {
-//   const relativeX = e.clientX - canvas.offsetLeft;
-//   if (relativeX > 0 && relativeX < canvas.width) {
-//     paddleX = Math.min(Math.max(relativeX - paddleWidth / 2, 0), canvas.width - paddleWidth);
-//   }
-// }
+class Game {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext("2d");
 
-function launchBall() {
-  if (ballLocked && gameState === "playing") {
-    ballLocked = false;
-    yDir = -1;
-    dy = yDir * minBallSpeed; // Move upward
-    dx = 0; // Start with vertical movement only
+    this.score = 0;
+    this.lives = 3;
+    this.gameState = "idle";
+
+    this.ball = new Ball(this.canvas);
+    this.paddle = new Paddle(this.canvas);
+    this.bricks = this.createBricks();
+
+    this.setupControls();
   }
-}
 
-function getRandomHexColor() {
-  let chooseColors = [
-    "03608e", "0383c1", "02a5f4", "34a0a4", "006078",
-    "03979e", "488fda", "0e7c86", "023e8a", "0077b6",
-    "0096c7", "00b4d8", "48cae4", "005f73", "0a9396",
-  ];
-
-  return "#" + chooseColors[Math.floor(Math.random() * chooseColors.length)];
-}
-
-function drawBall(color = "#0095DD") {
-  ctx.beginPath();
-  ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.closePath();
-}
-
-function drawPaddle() {
-  ctx.beginPath();
-  ctx.roundRect(
-    paddleX,
-    canvas.height - paddleHeight,
-    paddleWidth,
-    paddleHeight,
-    paddleBorderRadius
-  );
-  ctx.fillStyle = "#00538f";
-  ctx.fill();
-  ctx.closePath();
-}
-
-function drawBricks() {
-  for (let c = 0; c < brickColumnCount; c++) {
-    for (let r = 0; r < brickRowCount; r++) {
-      if (bricks[c][r].status === 1) {
-        const brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
-        const brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
-        bricks[c][r].x = brickX;
-        bricks[c][r].y = brickY;
-        ctx.beginPath();
-        ctx.rect(brickX, brickY, brickWidth, brickHeight);
-        ctx.fillStyle = "#0095DD";
-        ctx.fill();
-        ctx.closePath();
+  createBricks() {
+    const bricks = [];
+    for (let c = 0; c < GameConfig.BRICK.COLUMN_COUNT; c++) {
+      for (let r = 0; r < GameConfig.BRICK.ROW_COUNT; r++) {
+        const brickX =
+          c * (GameConfig.BRICK.WIDTH + GameConfig.BRICK.PADDING) +
+          GameConfig.BRICK.OFFSET_LEFT;
+        const brickY =
+          r * (GameConfig.BRICK.HEIGHT + GameConfig.BRICK.PADDING) +
+          GameConfig.BRICK.OFFSET_TOP;
+        bricks.push(
+          new Brick(
+            brickX,
+            brickY,
+            GameConfig.BRICK.COLORS[r % GameConfig.BRICK.COLORS.length]
+          )
+        );
       }
     }
+    return bricks;
   }
-}
 
-function drawScore() {
-  ctx.font = "16px Arial";
-  ctx.fillStyle = "#0095DD";
-  ctx.fillText(`Score: ${score}`, 8, 20);
-}
+  setupControls() {
+    const keyState = {
+      right: false,
+      left: false,
+    };
 
-function drawLives() {
-  ctx.font = "16px Arial";
-  ctx.fillStyle = "#0095DD";
-  ctx.fillText(`Lives: ${lives}`, canvas.width - 65, 20);
-}
-
-function collisionDetection() {
-  for (let c = 0; c < brickColumnCount; c++) {
-    for (let r = 0; r < brickRowCount; r++) {
-      const b = bricks[c][r];
-      if (b.status === 1) {
-        if (
-          x + ballRadius > b.x &&
-          x - ballRadius < b.x + brickWidth &&
-          y + ballRadius > b.y &&
-          y - ballRadius < b.y + brickHeight
-        ) {
-          yDir = -yDir;
-          b.status = 0;
-          score++;
-          if (score === brickRowCount * brickColumnCount) {
-            gameState = "won";
-          }
-          ballColor = getRandomHexColor();
-        }
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Right" || e.key === "ArrowRight") {
+        keyState.right = true;
+      } else if (e.key === "Left" || e.key === "ArrowLeft") {
+        keyState.left = true;
+      } else if (e.key === " " && this.ball.locked) {
+        this.ball.launch();
       }
-    }
+    });
+
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "Right" || e.key === "ArrowRight") {
+        keyState.right = false;
+      } else if (e.key === "Left" || e.key === "ArrowLeft") {
+        keyState.left = false;
+      }
+    });
+
+    this.keyState = keyState;
   }
-}
 
-function updatePaddleVelocity() {
-  paddleVelocityX = paddleX - lastPaddleX;
-  lastPaddleX = paddleX;
-}
-
-function calculateNewBallVelocity(hitPosition) {
-  const maxAngle = Math.PI / 3;
-  const angle = hitPosition * maxAngle;
-  const currentSpeed = Math.sqrt(dx * dx + dy * dy);
-  const paddleInfluence = paddleVelocityX * 0.2;
-  let newSpeed = currentSpeed + Math.abs(paddleInfluence);
-  newSpeed = Math.max(minBallSpeed, Math.min(maxBallSpeed, newSpeed));
-
-  dx = newSpeed * Math.sin(angle) + paddleInfluence;
-  yDir = -1;
-  dy = newSpeed * Math.cos(angle);
-  dx = Math.max(Math.min(dx, maxBallSpeed), -maxBallSpeed);
-}
-
-function showEndMessage() {
-  setTimeout(() => {
-    alert(gameState === "won" ? "YOU WIN, CONGRATULATIONS!" : "GAME OVER");
-    document.location.reload();
-  }, 500);
-}
-
-function renderElements() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawBricks();
-  drawBall(ballColor);
-  drawPaddle();
-  drawScore();
-  drawLives();
-}
-
-function resetBall() {
-  ballLocked = true;
-  // x = paddleX + paddleWidth / 2;
-  // y = canvas.height - paddleHeight - ballRadius;
-}
-
-function draw() {
-  if (gameState === "paused") return;
-
-  renderElements();
-  collisionDetection();
-  updatePaddleVelocity();
-
-  // Update ball position if locked to paddle
-  if (ballLocked) {
-    x = paddleX + paddleWidth / 2;
-    y = canvas.height - paddleHeight - ballRadius;
-  } else {
-    // Normal ball physics
-    dy -= (dy > minBallSpeed) ? friction : 0;
-    if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
-      dx = -dx;
-      ballColor = getRandomHexColor();
+  update() {
+    if (this.keyState.right) {
+      this.paddle.move(1);
+    } else if (this.keyState.left) {
+      this.paddle.move(-1);
     }
 
-    if (y +  (yDir * dy) < ballRadius) {
-      yDir = -yDir;
-      // dy = -dy;
-      ballColor = getRandomHexColor();
-    } else if (y + (yDir * dy) > canvas.height - ballRadius - paddleHeight) {
-      const ballLeft = x - ballRadius / 2;
-      const ballRight = x + ballRadius / 2;
+    this.paddle.updateVelocity();
+    this.ball.update(this.paddle);
 
-      if (ballRight > paddleX && ballLeft < paddleX + paddleWidth) {
-        const contactPoint = Math.max(ballLeft, Math.min(x, ballRight));
-        const hitPosition =
-          (contactPoint - (paddleX + paddleWidth / 2)) / (paddleWidth / 2);
-        calculateNewBallVelocity(hitPosition);
-        y = canvas.height - paddleHeight - ballRadius;
-        ballColor = getRandomHexColor();
-      } else {
-        lives--;
-        if (!lives) {
-          gameState = "lost";
+    if (
+      !this.ball.locked &&
+      this.ball.y + this.ball.yDir * this.ball.dy >
+        this.canvas.height - this.ball.radius - this.paddle.height
+    ) {
+      if (!this.paddle.handleCollision(this.ball)) {
+        this.lives--;
+        if (!this.lives) {
+          this.gameState = "lost";
         } else {
-          resetBall();
+          this.ball.reset(this.paddle.x, this.paddle.width);
         }
       }
     }
 
-    x += dx;
-    y += (yDir * dy);
+    // Check for brick collision
+    let bricksRemaining = 0;
+    for (const brick of this.bricks) {
+      if (brick.status === 1) {
+        if (brick.handleCollision(this.ball)) {
+          this.score++;
+        }
+        bricksRemaining++;
+      }
+    }
+
+    if (bricksRemaining === 0) {
+      this.gameState = "won";
+    }
   }
 
-  // Paddle movement
-  if (rightPressed) {
-    paddleX = Math.min(paddleX + paddleSpeed, canvas.width - paddleWidth);
-  } else if (leftPressed) {
-    paddleX = Math.max(paddleX - paddleSpeed, 0);
+  draw() {
+    // Clear canvas
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // Draw game objects
+    this.bricks.forEach((brick) => brick.draw(this.ctx));
+    this.ball.draw(this.ctx);
+    this.paddle.draw(this.ctx);
+
+    // Draw UI
+    this.drawScore();
+    this.drawLives();
   }
 
-  if (gameState === "playing") {
-    requestAnimationFrame(draw);
-  } else if (gameState === "won" || gameState === "lost") {
-    showEndMessage();
+  drawScore() {
+    this.ctx.font = "16px Arial";
+    this.ctx.fillStyle = "#0095DD";
+    this.ctx.fillText(`Score: ${this.score}`, 8, 20);
+  }
+
+  drawLives() {
+    this.ctx.font = "16px Arial";
+    this.ctx.fillStyle = "#0095DD";
+    this.ctx.fillText(`Lives: ${this.lives}`, this.canvas.width - 65, 20);
+  }
+
+  gameLoop() {
+    if (this.gameState === "playing") {
+      this.update();
+      this.draw();
+      requestAnimationFrame(() => this.gameLoop());
+    } else if (this.gameState === "won" || this.gameState === "lost") {
+      this.showEndMessage(); // Can be end screen later, and allow user to restart
+    }
+  }
+
+  showEndMessage() {
+    setTimeout(() => {
+      alert(
+        this.gameState === "won" ? "Congratulations! You won!" : "Game Over!"
+      );
+    });
+    setTimeout(() => {
+      this.reset();
+    }, 500);
+  }
+
+  reset() {
+    this.score = 0;
+    this.lives = 3;
+    this.gameState = "idle";
+    this.ball.reset(this.paddle.x, this.paddle.width);
+    this.bricks = this.createBricks();
+    this.start();
+  }
+
+  start() {
+    this.gameState = "playing";
+    this.gameLoop();
   }
 }
 
-// Initialize game
-gameState = "playing";
-// resetBall();
-draw();
+// Initialize and start the game
+const game = new Game("myCanvas");
+game.start();
