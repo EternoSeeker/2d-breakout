@@ -204,7 +204,7 @@ class Paddle extends GameObject {
         -GameConfig.BALL.MAX_SPEED
       );
 
-      ball.y = this.y;
+      ball.y = this.y - ball.radius;
       ball.changeColor();
       return true;
     }
