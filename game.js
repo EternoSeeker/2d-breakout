@@ -18,9 +18,9 @@ const GameConfig = {
     WIDTH: 60,
     HEIGHT: 15,
     PADDING: 10,
-    OFFSET_TOP: 30,
+    OFFSET_TOP: 40,
     OFFSET_LEFT: 20,
-    COLORS: ["0095dd", "1b63ab", "37327a", "520048"],
+    COLORS: {1: "0095dd", 2: "1b63ab", 3: "37327a", 4: "520048"},
   },
 };
 
@@ -204,7 +204,7 @@ class Paddle extends GameObject {
         -GameConfig.BALL.MAX_SPEED
       );
 
-      ball.y = this.y - ball.radius;
+      ball.y = this.y;
       ball.changeColor();
       return true;
     }
@@ -213,36 +213,37 @@ class Paddle extends GameObject {
 }
 
 class Brick extends GameObject {
-  constructor(x, y, color) {
+  constructor(x, y, strength) {
     super(x, y, GameConfig.BRICK.WIDTH, GameConfig.BRICK.HEIGHT);
-    this.color = color;
-    this.status = 1;
+    this.color = GameConfig.BRICK.COLORS[strength];
+    this.strength = strength;
   }
 
   draw(ctx) {
-    if (this.status === 1) {
+    if (this.strength > 0) {
       ctx.beginPath();
       ctx.rect(this.x, this.y, this.width, this.height);
-      ctx.fillStyle = `#${this.color}`;
+      ctx.fillStyle = `#${GameConfig.BRICK.COLORS[this.strength]}`;
       ctx.fill();
       ctx.closePath();
     }
   }
 
   handleCollision(ball) {
+    
     if (
-      this.status === 1 &&
+      this.strength > 0 &&
       ball.x + ball.radius > this.x &&
       ball.x - ball.radius < this.x + this.width &&
       ball.y + ball.radius > this.y &&
       ball.y - ball.radius < this.y + this.height
     ) {
       ball.yDir = -ball.yDir;
-      this.status = 0;
+      this.strength--;
       ball.changeColor();
-      return true;
+      if(this.strength === 0) return true;
     }
-    return false;
+    //return false;
   }
 }
 
@@ -250,6 +251,7 @@ class Game {
   constructor(canvasId) {
     this.canvas = document.getElementById(canvasId);
     this.ctx = this.canvas.getContext("2d");
+    this.bricksRemaining = GameConfig.BRICK.ROW_COUNT * GameConfig.BRICK.COLUMN_COUNT;
 
     this.score = 0;
     this.lives = 3;
@@ -279,7 +281,7 @@ class Game {
           new Brick(
             brickX,
             brickY,
-            GameConfig.BRICK.COLORS[r % GameConfig.BRICK.COLORS.length]
+            GameConfig.BRICK.ROW_COUNT - r
           )
         );
       }
@@ -340,17 +342,15 @@ class Game {
     }
 
     // Check for brick collision
-    let bricksRemaining = 0;
+    
     for (const brick of this.bricks) {
-      if (brick.status === 1) {
         if (brick.handleCollision(this.ball)) {
           this.score++;
+          this.bricksRemaining--;
         }
-        bricksRemaining++;
-      }
     }
 
-    if (bricksRemaining === 0) {
+    if (this.bricksRemaining === 0) {
       this.gameState = "won";
     }
   }
@@ -412,12 +412,12 @@ class Game {
   }
 
   reset() {
+    this.bricksRemaining = GameConfig.BRICK.ROW_COUNT * GameConfig.BRICK.COLUMN_COUNT;
     this.score = 0;
     this.lives = 3;
     this.gameState = "idle";
     this.ball.reset(this.paddle.x, this.paddle.width);
     this.bricks = this.createBricks();
-    this.ball.reset(this.paddle.x, this.paddle.width);
     this.start();
   }
 
