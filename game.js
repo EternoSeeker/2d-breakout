@@ -1,13 +1,13 @@
 const GameConfig = {
   PADDLE: {
-    HEIGHT: 15,
-    WIDTH: 85,
+    HEIGHT: 16,
+    WIDTH: 86,
     BORDER_RADIUS: 7,
-    SPEED: 450,
+    SPEED: 500,
     COLOR: "#00538f",
   },
   BALL: {
-    RADIUS: 9,
+    RADIUS: 9.5,
     MIN_SPEED: 275,
     MAX_SPEED: 500,
     FRICTION: 10,
@@ -16,11 +16,11 @@ const GameConfig = {
     ROW_COUNT: 4,
     COLUMN_COUNT: 8,
     WIDTH: 60,
-    HEIGHT: 15,
+    HEIGHT: 18,
     PADDING: 10,
     OFFSET_TOP: 40,
     OFFSET_LEFT: 20,
-    COLORS: {1: "0095dd", 2: "1b63ab", 3: "37327a", 4: "520048"},
+    COLORS: { 1: "0095dd", 2: "1b63ab", 3: "37327a", 4: "520048" },
   },
 };
 
@@ -49,6 +49,7 @@ class Ball extends GameObject {
     this.dx = GameConfig.BALL.MIN_SPEED;
     this.dy = GameConfig.BALL.MIN_SPEED;
     this.yDir = -1;
+    //this.xDir = 1;
     this.color = "#0095DD";
     this.locked = true;
 
@@ -83,21 +84,23 @@ class Ball extends GameObject {
     if (this.locked) {
       this.x = paddle.x + paddle.width / 2;
       this.y = this.canvas.height - GameConfig.PADDLE.HEIGHT - this.radius;
-      this.actualX = this.x;
-      this.actualY = this.y;
+      // this.actualX = this.x;
+      // this.actualY = this.y;
       return;
     }
 
     // Apply Friction
-    this.dy -= (this.dy > GameConfig.BALL.MIN_SPEED ? GameConfig.BALL.FRICTION : 0) * deltaTime;
+    this.dy -=
+      (this.dy > GameConfig.BALL.MIN_SPEED ? GameConfig.BALL.FRICTION : 0) *
+      deltaTime;
 
     // update position using delta time
-    this.actualX += this.dx * deltaTime;
-    this.actualY += this.yDir * this.dy * deltaTime;
+    this.x += this.dx * deltaTime;
+    this.y += this.yDir * this.dy * deltaTime;
 
-    // Update integer positions for rendering
-    this.x = Math.round(this.actualX);
-    this.y = Math.round(this.actualY);
+    // // Update integer positions for rendering
+    // this.x = Math.round(this.actualX);
+    // this.y = Math.round(this.actualY);
 
     // Handle wall collision
     if (
@@ -230,20 +233,42 @@ class Brick extends GameObject {
   }
 
   handleCollision(ball) {
-    
+    if (this.strength <= 0) return false;
+    // Early exit optimization - rough AABB check first
     if (
-      this.strength > 0 &&
-      ball.x + ball.radius > this.x &&
-      ball.x - ball.radius < this.x + this.width &&
-      ball.y + ball.radius > this.y &&
-      ball.y - ball.radius < this.y + this.height
+      ball.x + ball.radius < this.x ||
+      ball.x - ball.radius > this.x + this.width ||
+      ball.y + ball.radius < this.y ||
+      ball.y - ball.radius > this.y + this.height
     ) {
-      ball.yDir = -ball.yDir;
+      return false;
+    }
+    // Precise circle collision check
+    const closestX = Math.max(this.x, Math.min(ball.x, this.x + this.width));
+    const closestY = Math.max(this.y, Math.min(ball.y, this.y + this.height));
+    const distanceX = ball.x - closestX;
+    const distanceY = ball.y - closestY;
+    const distanceSquared = distanceX * distanceX + distanceY * distanceY;
+
+    if (distanceSquared < ball.radius * ball.radius) {
+      // More accurate collision response
+      if (Math.abs(distanceX) > Math.abs(distanceY)) {
+        // Side collision - reflect x velocity
+        ball.dx = -ball.dx;
+        // Push ball out of brick
+        ball.x = closestX + (distanceX > 0 ? ball.radius : -ball.radius);
+      } else {
+        // Top/bottom collision - reflect y velocity
+        ball.yDir = -ball.yDir;
+        // Push ball out of brick
+        ball.y = closestY + (distanceY > 0 ? ball.radius : -ball.radius);
+      }
+
       this.strength--;
       ball.changeColor();
-      if(this.strength === 0) return true;
+      return this.strength === 0;
     }
-    //return false;
+    // return false;
   }
 }
 
@@ -251,7 +276,8 @@ class Game {
   constructor(canvasId) {
     this.canvas = document.getElementById(canvasId);
     this.ctx = this.canvas.getContext("2d");
-    this.bricksRemaining = GameConfig.BRICK.ROW_COUNT * GameConfig.BRICK.COLUMN_COUNT;
+    this.bricksRemaining =
+      GameConfig.BRICK.ROW_COUNT * GameConfig.BRICK.COLUMN_COUNT;
 
     this.score = 0;
     this.lives = 3;
@@ -277,13 +303,7 @@ class Game {
         const brickY =
           r * (GameConfig.BRICK.HEIGHT + GameConfig.BRICK.PADDING) +
           GameConfig.BRICK.OFFSET_TOP;
-        bricks.push(
-          new Brick(
-            brickX,
-            brickY,
-            GameConfig.BRICK.ROW_COUNT - r
-          )
-        );
+        bricks.push(new Brick(brickX, brickY, GameConfig.BRICK.ROW_COUNT - r));
       }
     }
     return bricks;
@@ -342,12 +362,12 @@ class Game {
     }
 
     // Check for brick collision
-    
+
     for (const brick of this.bricks) {
-        if (brick.handleCollision(this.ball)) {
-          this.score++;
-          this.bricksRemaining--;
-        }
+      if (brick.handleCollision(this.ball)) {
+        this.score++;
+        this.bricksRemaining--;
+      }
     }
 
     if (this.bricksRemaining === 0) {
@@ -383,7 +403,7 @@ class Game {
 
   gameLoop(currentTime) {
     if (this.gameState === "playing") {
-      if(!this.lastTime){
+      if (!this.lastTime) {
         this.lastTime = currentTime;
       }
 
@@ -412,7 +432,8 @@ class Game {
   }
 
   reset() {
-    this.bricksRemaining = GameConfig.BRICK.ROW_COUNT * GameConfig.BRICK.COLUMN_COUNT;
+    this.bricksRemaining =
+      GameConfig.BRICK.ROW_COUNT * GameConfig.BRICK.COLUMN_COUNT;
     this.score = 0;
     this.lives = 3;
     this.gameState = "idle";
