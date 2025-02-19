@@ -14,12 +14,12 @@ const GameConfig = {
   },
   BRICK: {
     ROW_COUNT: 4,
-    COLUMN_COUNT: 8,
-    WIDTH: 60,
+    COLUMN_COUNT: 7,
+    WIDTH: 75,
     HEIGHT: 18,
-    PADDING: 10,
+    PADDING: 5,
     OFFSET_TOP: 40,
-    OFFSET_LEFT: 20,
+    OFFSET_LEFT: 25,
     COLORS: { 1: "0095dd", 2: "1b63ab", 3: "37327a", 4: "520048" },
   },
 };
@@ -84,23 +84,25 @@ class Ball extends GameObject {
     if (this.locked) {
       this.x = paddle.x + paddle.width / 2;
       this.y = this.canvas.height - GameConfig.PADDLE.HEIGHT - this.radius;
-      // this.actualX = this.x;
-      // this.actualY = this.y;
+      this.actualX = this.x;
+      this.actualY = this.y;
       return;
     }
 
-    // Apply Friction
-    this.dy -=
-      (this.dy > GameConfig.BALL.MIN_SPEED ? GameConfig.BALL.FRICTION : 0) *
-      deltaTime;
+    const speed = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
+    if (speed > GameConfig.BALL.MIN_SPEED) {
+      const scale = Math.max((speed - GameConfig.BALL.FRICTION * deltaTime) / speed, 0);
+      this.dx *= scale;
+      this.dy *= scale;
+    }
 
     // update position using delta time
-    this.x += this.dx * deltaTime;
-    this.y += this.yDir * this.dy * deltaTime;
+    this.actualX += this.dx * deltaTime;
+    this.actualY += this.yDir * this.dy * deltaTime;
 
-    // // Update integer positions for rendering
-    // this.x = Math.round(this.actualX);
-    // this.y = Math.round(this.actualY);
+    // Update integer positions for rendering
+    this.x = Math.round(this.actualX);
+    this.y = Math.round(this.actualY);
 
     // Handle wall collision
     if (
@@ -155,10 +157,12 @@ class Paddle extends GameObject {
   }
 
   draw(ctx) {
+    const renderX = Math.round(this.x);
+    const renderY = Math.round(this.y);
     ctx.beginPath();
     ctx.roundRect(
-      this.x,
-      this.y,
+      renderX,
+      renderY,
       this.width,
       this.height,
       GameConfig.PADDLE.BORDER_RADIUS
@@ -169,8 +173,13 @@ class Paddle extends GameObject {
   }
 
   move(direction, deltaTime) {
-    const newX = this.x + direction * this.speed * deltaTime;
+    const moveAmount = direction * this.speed * deltaTime;
+    const newX = this.x + moveAmount;
     this.x = Math.max(0, Math.min(newX, this.canvas.width - this.width));
+    
+    // Smooth sub-pixel positioning
+    this.actualX = this.x;
+    this.actualY = this.y;
   }
 
   updateVelocity(deltaTime) {
@@ -234,13 +243,17 @@ class Brick extends GameObject {
 
   handleCollision(ball) {
     if (this.strength <= 0) return false;
-    // Early exit optimization - rough AABB check first
-    if (
-      ball.x + ball.radius < this.x ||
-      ball.x - ball.radius > this.x + this.width ||
-      ball.y + ball.radius < this.y ||
-      ball.y - ball.radius > this.y + this.height
-    ) {
+  
+    // Optimized collision check with early exit
+    const ballLeft = ball.actualX - ball.radius;
+    const ballRight = ball.actualX + ball.radius;
+    const ballTop = ball.actualY - ball.radius;
+    const ballBottom = ball.actualY + ball.radius;
+
+    if (ballRight < this.x || 
+        ballLeft > this.x + this.width ||
+        ballBottom < this.y || 
+        ballTop > this.y + this.height) {
       return false;
     }
     // Precise circle collision check
@@ -283,8 +296,8 @@ class Game {
     this.lives = 3;
     this.gameState = "idle";
     this.lastTime = 0;
-    // this.targetFPS = 60;
-    // this.timeStep = 1000 / this.targetFPS;
+    this.accumulator = 0;
+    this.step = 1 / 60;
 
     this.ball = new Ball(this.canvas);
     this.paddle = new Paddle(this.canvas);
@@ -408,12 +421,17 @@ class Game {
       }
 
       let deltaTime = (currentTime - this.lastTime) / 1000;
-
-      //deltaTime = Math.min(deltaTime, 0.1); // Cap the maximum delta time to 100ms
-
-      this.update(deltaTime);
-      this.draw();
       this.lastTime = currentTime;
+
+      deltaTime = Math.min(deltaTime, 0.1); // Cap the maximum delta time to 100ms
+      this.accumulator += deltaTime;
+      while(this.accumulator >= this.step) {
+        this.update(this.step);
+        this.accumulator -= this.step;
+      }
+      
+      this.draw(this.accumulator / this.step);
+      
       requestAnimationFrame((time) => this.gameLoop(time));
     } else if (this.gameState === "won" || this.gameState === "lost") {
       this.showEndMessage(); // Can be end screen later, and allow user to restart
