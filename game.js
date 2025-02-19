@@ -179,8 +179,8 @@ class Paddle extends GameObject {
   }
 
   handleCollision(ball) {
-    const ballLeft = ball.x - ball.radius / 2;
-    const ballRight = ball.x + ball.radius / 2;
+    const ballLeft = ball.x - ball.radius;
+    const ballRight = ball.x + ball.radius;
 
     if (ballRight > this.x && ballLeft < this.x + this.width) {
       const contactPoint = Math.max(ballLeft, Math.min(ball.x, ballRight));
@@ -283,8 +283,8 @@ class Game {
     this.lives = 3;
     this.gameState = "idle";
     this.lastTime = 0;
-    this.targetFPS = 60;
-    this.timeStep = 1000 / this.targetFPS;
+    // this.targetFPS = 60;
+    // this.timeStep = 1000 / this.targetFPS;
 
     this.ball = new Ball(this.canvas);
     this.paddle = new Paddle(this.canvas);
@@ -409,7 +409,7 @@ class Game {
 
       let deltaTime = (currentTime - this.lastTime) / 1000;
 
-      deltaTime = Math.min(deltaTime, 0.1); // Cap the maximum delta time to 100ms
+      //deltaTime = Math.min(deltaTime, 0.1); // Cap the maximum delta time to 100ms
 
       this.update(deltaTime);
       this.draw();
@@ -428,7 +428,7 @@ class Game {
     });
     setTimeout(() => {
       this.reset();
-    }, 500);
+    }, 100);
   }
 
   reset() {
