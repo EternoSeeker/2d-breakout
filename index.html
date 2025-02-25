@@ -13,8 +13,21 @@
     />
   </head>
   <body>
-    <h1 class="bruno">Block Breaker</h1>
-    <canvas id="myCanvas" width="600" height="400"></canvas>
+    <main>
+      <div class="headers">
+        <h1 class="bruno">Block Breaker</h1>
+        <div id="levelDisplay" class="bruno"></div>
+      </div>
+      <div>
+        <canvas id="myCanvas" width="600" height="400"></canvas>
+      </div>
+      <div class="instructions">
+        <div class="instruction-item">Move Left: <span class="kbd">←</span></div>
+        <div class="instruction-item">Move Right: <span class="kbd">→</span></div>
+        <div class="instruction-item">Launch: <span class="kbd">Space</span></div>
+      </div>      
+    </main>
+    
     <!-- <button id="runButton">Start game</button> -->
     <script src="game.js"></script>
   </body>

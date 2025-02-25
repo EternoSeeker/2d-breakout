@@ -36,10 +36,10 @@ class GameObject {
 }
 
 class Ball extends GameObject {
-  constructor(canvas) {
+  constructor(canvas, x = null, y = null, dx = null, dy = null) {
     super(
-      canvas.width / 2,
-      canvas.height - GameConfig.PADDLE.HEIGHT - GameConfig.BALL.RADIUS,
+      x || canvas.width / 2,
+      y || canvas.height - GameConfig.PADDLE.HEIGHT - GameConfig.BALL.RADIUS,
       GameConfig.BALL.RADIUS * 2,
       GameConfig.BALL.RADIUS * 2
     );
@@ -281,7 +281,7 @@ class Brick extends GameObject {
       ball.changeColor();
       return this.strength === 0;
     }
-    // return false;
+    return false;
   }
 }
 
@@ -289,8 +289,6 @@ class Game {
   constructor(canvasId) {
     this.canvas = document.getElementById(canvasId);
     this.ctx = this.canvas.getContext("2d");
-    this.bricksRemaining =
-      GameConfig.BRICK.ROW_COUNT * GameConfig.BRICK.COLUMN_COUNT;
 
     this.score = 0;
     this.lives = 3;
@@ -299,14 +297,66 @@ class Game {
     this.accumulator = 0;
     this.step = 1 / 60;
 
+    this.currentLevel = 0;
+    this.levels = [];
+    this.loadLevels();
+
     this.ball = new Ball(this.canvas);
     this.paddle = new Paddle(this.canvas);
-    this.bricks = this.createBricks();
+    this.bricks = [];
 
     this.setupControls();
+    this.setupLevelDisplay();
   }
 
-  createBricks() {
+  async loadLevels(){
+    try{
+      const response = await fetch("./levels.json");
+      this.levels = await response.json();
+      this.initLevel(this.currentLevel);
+    } catch (error){
+      console.error("Error loading levels", error);
+      // Fall back to default level
+      this.bricks = this.createDefaultBricks();
+      this.updateBrickCount();
+    }
+  }
+
+  setupLevelDisplay(){
+    this.levelDisplay = document.getElementById("levelDisplay");
+  }
+
+  initLevel(levelIndex){
+    if(this.levels.length === 0) return;
+
+    // Reset game state for new level
+    this.bricks = [];
+    this.ball.reset(this.paddle.x, this.paddle.width);
+
+    // Get level data
+    const level = this.levels[levelIndex];
+    if(!level) return;
+
+    // Update level display
+    this.levelDisplay.textContent = level.name || `Level ${levelIndex + 1}`;
+
+    // Create bricks
+    const layout = level.layout;
+    for(let r = 0; r < layout.length; r++){
+      const row = layout[r];
+      for(let c = 0; c < row.length; c++){
+        const strength = parseInt(row[c]);
+        if(strength > 0){
+          const brickX = c * (GameConfig.BRICK.WIDTH + GameConfig.BRICK.PADDING) + GameConfig.BRICK.OFFSET_LEFT;
+          const brickY = r * (GameConfig.BRICK.HEIGHT + GameConfig.BRICK.PADDING) + GameConfig.BRICK.OFFSET_TOP;
+          this.bricks.push(new Brick(brickX, brickY, strength));
+        }
+      }
+    }
+    this.updateBrickCount();
+  }
+
+  createDefaultBricks() {
     const bricks = [];
     for (let c = 0; c < GameConfig.BRICK.COLUMN_COUNT; c++) {
       for (let r = 0; r < GameConfig.BRICK.ROW_COUNT; r++) {
@@ -320,6 +370,10 @@ class Game {
       }
     }
     return bricks;
+  }
+
+  updateBrickCount(){
+    this.bricksRemaining = this.bricks.filter((brick) => brick.strength > 0).length;
   }
 
   setupControls() {
@@ -384,8 +438,20 @@ class Game {
     }
 
     if (this.bricksRemaining === 0) {
-      this.gameState = "won";
+      this.nextLevel();
     }
+  }
+
+  nextLevel(){
+    this.currentLevel++;
+    if(this.currentLevel >= this.levels.length){
+      // Game won
+      this.gameState = "won";
+      return;
+    }
+
+    // Initialize next level
+    this.initLevel(this.currentLevel);
   }
 
   draw() {
@@ -440,9 +506,15 @@ class Game {
 
   showEndMessage() {
     setTimeout(() => {
-      alert(
-        this.gameState === "won" ? "Congratulations! You won!" : "Game Over!"
-      );
+      if (this.gameState === "won") {
+        if (this.currentLevel >= this.levels.length) {
+          alert("Congratulations! You completed all levels!");
+        } else {
+          alert("Level Complete! Moving to next level.");
+        }
+      } else {
+        alert("Game Over!");
+      }
     });
     setTimeout(() => {
       this.reset();
@@ -450,13 +522,12 @@ class Game {
   }
 
   reset() {
-    this.bricksRemaining =
-      GameConfig.BRICK.ROW_COUNT * GameConfig.BRICK.COLUMN_COUNT;
     this.score = 0;
     this.lives = 3;
     this.gameState = "idle";
+    this.currentLevel = 0;
     this.ball.reset(this.paddle.x, this.paddle.width);
-    this.bricks = this.createBricks();
+    this.initLevel(this.currentLevel);
     this.start();
   }
 
@@ -468,5 +539,8 @@ class Game {
 }
 
 // Initialize and start the game
-const game = new Game("myCanvas");
-game.start();
+document.addEventListener("DOMContentLoaded", () => {
+  const game = new Game("myCanvas");
+  game.start();
+});
+
