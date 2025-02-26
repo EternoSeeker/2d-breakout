@@ -469,15 +469,15 @@ class Game {
   }
 
   drawScore() {
-    this.ctx.font = "16px Arial";
-    this.ctx.fillStyle = "#0095DD";
-    this.ctx.fillText(`Score: ${this.score}`, 8, 20);
+    this.ctx.font = "bold 1.05rem Jura";
+    this.ctx.fillStyle = "#1A173A";
+    this.ctx.fillText(`Score: ${this.score}`, 9, 20);
   }
 
   drawLives() {
-    this.ctx.font = "16px Arial";
-    this.ctx.fillStyle = "#0095DD";
-    this.ctx.fillText(`Lives: ${this.lives}`, this.canvas.width - 65, 20);
+    this.ctx.font = "bold 1.05rem Jura";
+    this.ctx.fillStyle = "#1A173A";
+    this.ctx.fillText(`Lives: ${this.lives}`, this.canvas.width - 72, 20);
   }
 
   gameLoop(currentTime) {
