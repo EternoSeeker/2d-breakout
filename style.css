@@ -24,7 +24,7 @@ body {
   font-size: 3.25rem;
   color: #fff;
   text-shadow: 0 0.3rem 0.6rem rgba(0, 0, 0, 0.5);
-  margin-bottom: 0.5rem;
+  margin-bottom: 1.25rem;
   font-family: "Bruno Ace SC", sans-serif;
 }
 
@@ -33,14 +33,14 @@ body {
   color: #f1ffd7;
   font-size: 1.8rem;
   font-weight: bold;
-  margin-top: 0.4rem;
+  margin: auto;
   /* Added subtle text shadow for better readability */
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 /* Headers Container */
 .headers {
-  margin-bottom: 1.5rem;
+  margin: 1.5rem auto;
 }
 
 /* Game Container */
@@ -48,8 +48,10 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   width: 100%;
   max-width: 800px;
+  height: 100vh;
   padding: 1.5rem;
 }
 
@@ -81,11 +83,10 @@ canvas:hover {
   text-align: center;
   max-width: 600px;
   margin-top: 1.5rem;
-  /* Added subtle border for definition */
   border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
 }
 
-/* Individual Instruction Item */
 .instruction-item {
   display: flex;
   align-items: center;
@@ -93,7 +94,6 @@ canvas:hover {
   white-space: nowrap;
 }
 
-/* Keyboard Key Styling */
 .kbd {
   display: inline-block;
   padding: 0.3rem 0.6rem;
@@ -104,7 +104,6 @@ canvas:hover {
   border-radius: 5px;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
   font-family: monospace;
-  /* Added subtle transition for interactive feel */
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
@@ -131,7 +130,6 @@ canvas:hover {
 
   .instructions {
     font-size: 0.9rem;
-    /* flex-direction: column; */
     gap: 0.8rem;
     padding: 0.8rem;
   }
@@ -146,7 +144,6 @@ canvas:hover {
   }
 }
 
-/* Additional mobile adjustments */
 @media (max-width: 480px) {
   .game-heading {
     font-size: 1.8rem;
