@@ -1,16 +1,17 @@
 const GameConfig = {
   PADDLE: {
     HEIGHT: 16,
-    WIDTH: 86,
+    WIDTH: 88,
     BORDER_RADIUS: 7,
     SPEED: 500,
     COLOR: "#00538f",
   },
   BALL: {
-    RADIUS: 9.5,
-    MIN_SPEED: 275,
-    MAX_SPEED: 500,
+    RADIUS: 9,
+    MIN_SPEED: 300,
+    MAX_SPEED: 475,
     FRICTION: 10,
+    COLOR: "#D19E3F",
   },
   BRICK: {
     ROW_COUNT: 4,
@@ -49,8 +50,7 @@ class Ball extends GameObject {
     this.dx = GameConfig.BALL.MIN_SPEED;
     this.dy = GameConfig.BALL.MIN_SPEED;
     this.yDir = -1;
-    //this.xDir = 1;
-    this.color = "#0095DD";
+    this.color = GameConfig.BALL.COLOR;
     this.locked = true;
 
     this.actualX = this.x;
@@ -58,9 +58,22 @@ class Ball extends GameObject {
   }
 
   draw(ctx) {
+    const gradient = ctx.createRadialGradient(
+      this.x - this.radius / 4, 
+      this.y - this.radius / 4, 
+      this.radius / 10,
+      this.x, 
+      this.y, 
+      this.radius
+    );
+    
+    gradient.addColorStop(0.3, "#d7ac5b");
+    gradient.addColorStop(0.8, this.color); 
+    gradient.addColorStop(1, "#a47928aa"); 
+    
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    ctx.fillStyle = this.color;
+    ctx.fillStyle = gradient;
     ctx.fill();
     ctx.closePath();
   }
@@ -113,34 +126,11 @@ class Ball extends GameObject {
       this.x + this.dx * deltaTime < this.radius
     ) {
       this.dx = -this.dx;
-      this.changeColor();
     }
 
     if (this.y + this.yDir * this.dy * deltaTime < this.radius) {
       this.yDir = -this.yDir;
-      this.changeColor();
     }
-  }
-
-  changeColor() {
-    const colors = [
-      "03608e",
-      "0383c1",
-      "02a5f4",
-      "34a0a4",
-      "006078",
-      "03979e",
-      "488fda",
-      "0e7c86",
-      "023e8a",
-      "0077b6",
-      "0096c7",
-      "00b4d8",
-      "48cae4",
-      "005f73",
-      "0a9396",
-    ];
-    this.color = "#" + colors[Math.floor(Math.random() * colors.length)];
   }
 }
 
@@ -157,11 +147,22 @@ class Paddle extends GameObject {
     this.speed = GameConfig.PADDLE.SPEED;
     this.lastX = this.x;
     this.velocityX = 0;
+    this.color = GameConfig.PADDLE.COLOR;
   }
 
   draw(ctx) {
     const renderX = Math.round(this.x);
     const renderY = Math.round(this.y);
+    const gradient = ctx.createLinearGradient(
+      this.x,
+      this.y,
+      this.x,
+      this.y + this.height
+    );
+    gradient.addColorStop(0, "#3388CC"); 
+    gradient.addColorStop(0.7, this.color);
+    gradient.addColorStop(1, this.color); 
+
     ctx.beginPath();
     ctx.roundRect(
       renderX,
@@ -170,7 +171,7 @@ class Paddle extends GameObject {
       this.height,
       GameConfig.PADDLE.BORDER_RADIUS
     );
-    ctx.fillStyle = GameConfig.PADDLE.COLOR;
+    ctx.fillStyle = gradient;
     ctx.fill();
     ctx.closePath();
   }
@@ -220,13 +221,12 @@ class Paddle extends GameObject {
       );
 
       ball.y = this.y - ball.radius;
-      ball.changeColor();
       return true;
     }
     return false;
   }
 
-  reset(){
+  reset() {
     this.x = (this.canvas.width - this.width) / 2;
     this.lastX = this.x;
     this.velocityX = 0;
@@ -242,9 +242,21 @@ class Brick extends GameObject {
 
   draw(ctx) {
     if (this.strength > 0) {
+      const baseColor = `#${GameConfig.BRICK.COLORS[this.strength]}`;
+
+      const gradient = ctx.createLinearGradient(
+        this.x,
+        this.y,
+        this.x,
+        this.y + this.height
+      );
+      gradient.addColorStop(0, baseColor);
+      gradient.addColorStop(0.8, baseColor); 
+      gradient.addColorStop(1, "#607e94"); 
+
       ctx.beginPath();
       ctx.rect(this.x, this.y, this.width, this.height);
-      ctx.fillStyle = `#${GameConfig.BRICK.COLORS[this.strength]}`;
+      ctx.fillStyle = gradient;
       ctx.fill();
       ctx.closePath();
     }
@@ -289,7 +301,6 @@ class Brick extends GameObject {
       }
 
       this.strength--;
-      ball.changeColor();
       return this.strength === 0;
     }
     return false;
