@@ -8,9 +8,8 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
-  /* Simplified gradient with fewer colors and softer transition */
   background: linear-gradient(135deg, #1c2f7a, #1e8582);
   background-repeat: no-repeat;
   font-family: "Jura", serif;
@@ -20,7 +19,6 @@ body {
   text-align: center;
 }
 
-/* Game Title */
 .game-heading {
   font-size: 3.25rem;
   color: #fff;
@@ -29,22 +27,18 @@ body {
   font-family: "Bruno Ace SC", sans-serif;
 }
 
-/* Level Display */
+.headers {
+  margin: 1.5rem auto;
+}
+
 #levelDisplay {
   color: #f1ffd7;
   font-size: 1.8rem;
   font-weight: bold;
   margin: auto;
-  /* Added subtle text shadow for better readability */
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-/* Headers Container */
-.headers {
-  margin: 1.5rem auto;
-}
-
-/* Game Container */
 main {
   display: flex;
   flex-direction: column;
@@ -53,16 +47,14 @@ main {
   width: 100%;
   height: 100%;
   max-width: 800px;
-  padding: 1.5rem;
+  padding: 1.25rem;
 }
 
-/* Canvas */
 canvas {
   background: #f5f5f5;
   border-radius: 10px;
   box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.5);
   border: 2px solid #fff;
-  /* Added subtle transition for hover effects */
   transition: box-shadow 0.3s ease;
 }
 
@@ -70,7 +62,6 @@ canvas:hover {
   box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.6);
 }
 
-/* Instructions Container */
 .instructions {
   display: flex;
   box-sizing: border-box;
@@ -115,8 +106,11 @@ canvas:hover {
   box-shadow: 2px 4px 7px rgba(0, 0, 0, 0.35);
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
+  .headers {
+    margin: 1.2rem auto;
+  }
+
   .game-heading {
     font-size: 2.25rem;
   }
@@ -154,8 +148,8 @@ canvas:hover {
   }
 
   .instructions {
-    font-size: 0.75rem;;
-     flex-direction: column; 
+    font-size: 0.75rem;
+    flex-direction: column;
     padding: 0.8rem;
   }
 }
