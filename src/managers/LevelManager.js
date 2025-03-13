@@ -12,7 +12,7 @@ class LevelManager {
 
   async loadLevels() {
     try {
-      const response = await fetch("../../assets/levels.json");
+      const response = await fetch("assets/levels.json");
       this.levels = await response.json();
       return true;
     } catch (error) {

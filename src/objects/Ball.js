@@ -1,6 +1,5 @@
 import GameObject from "./GameObject.js";
 import GameConfig from "../GameConfig.js";
-import CollisionManager from "../managers/CollisionManager.js";
 
 class Ball extends GameObject {
   constructor(canvas, x = null, y = null, dx = null, dy = null) {

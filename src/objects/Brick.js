@@ -1,6 +1,5 @@
 import GameObject from "./GameObject.js";
 import GameConfig from "../GameConfig.js";
-import CollisionManager from "../managers/CollisionManager.js";
 
 class Brick extends GameObject {
   constructor(x, y, strength) {

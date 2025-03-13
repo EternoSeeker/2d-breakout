@@ -1,6 +1,5 @@
 import GameObject from "./GameObject.js";
 import GameConfig from "../GameConfig.js";
-import CollisionManager from "../managers/CollisionManager.js";
 
 class Paddle extends GameObject {
   constructor(canvas) {
