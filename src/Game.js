@@ -28,6 +28,7 @@ class Game {
     const levelsLoaded = await this.levelManager.loadLevels();
     if (levelsLoaded) {
       this.levelManager.initLevel(this.levelManager.currentLevel);
+      this.start();
     }
   }
 
@@ -104,6 +105,7 @@ class Game {
   }
 
   advanceToNextLevel() {
+    if(this.gameState !== "playing") return;
     const hasNextLevel = this.levelManager.nextLevel();
     if (!hasNextLevel) {
       this.gameState = "won";
@@ -155,7 +157,7 @@ class Game {
     setTimeout(() => {
       if (this.gameState === "won") {
         alert("Congratulations! You completed all levels!");
-      } else {
+      } else if(this.gameState === "lost") {
         alert("Game Over!");
       }
     }, 0);
