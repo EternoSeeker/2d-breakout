@@ -15,7 +15,10 @@ class Game {
 
     this.ball = new Ball(this.canvas);
     this.paddle = new Paddle(this.canvas);
-    this.scoreManager = new ScoreManager();
+    this.scoreManager = new ScoreManager(
+      document.getElementById("scoreDisplay"),
+      document.getElementById("livesDisplay")
+    );
     this.levelManager = new LevelManager(
       document.getElementById("levelDisplay")
     );
@@ -126,7 +129,7 @@ class Game {
     this.paddle.draw(this.ctx);
 
     // Draw UI
-    this.scoreManager.draw(this.ctx, this.canvas.width);
+    this.scoreManager.updateDisplay();
   }
 
   gameLoop(currentTime) {

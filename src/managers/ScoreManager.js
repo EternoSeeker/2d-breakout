@@ -1,39 +1,37 @@
 class ScoreManager {
-  constructor() {
+  constructor(scoreElement, livesElement) {
     this.score = 0;
     this.lives = 3;
+    this.scoreElement = scoreElement;
+    this.livesElement = livesElement;
+    this.updateDisplay();
   }
 
   increaseScore() {
     this.score++;
+    this.updateDisplay();
     return this.score;
   }
 
   decreaseLives() {
     this.lives--;
+    this.updateDisplay();
     return this.lives;
   }
 
   reset() {
     this.score = 0;
     this.lives = 3;
+    this.updateDisplay();
   }
 
-  draw(ctx, canvasWidth) {
-    this.drawScore(ctx);
-    this.drawLives(ctx, canvasWidth);
-  }
-
-  drawScore(ctx) {
-    ctx.font = "bold 1.05rem Jura";
-    ctx.fillStyle = "#1A173A";
-    ctx.fillText(`Score: ${this.score}`, 9, 20);
-  }
-
-  drawLives(ctx, canvasWidth) {
-    ctx.font = "bold 1.05rem Jura";
-    ctx.fillStyle = "#1A173A";
-    ctx.fillText(`Lives: ${this.lives}`, canvasWidth - 72, 20);
+  updateDisplay() {
+    if (this.scoreElement) {
+      this.scoreElement.innerText = this.score;
+    }
+    if (this.livesElement) {
+      this.livesElement.innerText = this.lives;
+    }
   }
 }
 

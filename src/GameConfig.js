@@ -20,7 +20,7 @@ const GameConfig = {
     WIDTH: 75,
     HEIGHT: 18,
     PADDING: 5,
-    OFFSET_TOP: 40,
+    OFFSET_TOP: 30,
     OFFSET_LEFT: 25,
     COLORS: { 1: "0095dd", 2: "1b63ab", 3: "37327a", 4: "520048" },
   },

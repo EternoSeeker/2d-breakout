@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>2D Breakout</title>
+    <title>Block Breaker</title>
     <link rel="stylesheet" href="style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,6 +15,10 @@
       href="https://fonts.googleapis.com/css2?family=Jura:wght@300..700&display=swap"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=question_mark"
+    />
   </head>
   <body>
     <main>
@@ -22,23 +26,53 @@
         <h1 class="game-heading">Block Breaker</h1>
         <div id="levelDisplay" class="bruno"></div>
       </div>
-      <div>
+
+      <div class="game-container">
+        <div class="game-info">
+          <div class="stats-container">
+            <div class="stat-item">
+              <span class="stat-label">Score:</span>
+              <span id="scoreDisplay" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Lives:</span>
+              <span id="livesDisplay" class="stat-value">3</span>
+            </div>
+          </div>
+
+          <div class="help-container">
+            <button
+              id="helpButton"
+              class="help-button"
+              aria-label="Show instructions"
+            >
+              <span class="material-symbols-outlined">question_mark</span>
+              <span class="help-text">Help</span>
+            </button>
+          </div>
+        </div>
+
         <canvas id="myCanvas" width="600" height="400"></canvas>
-      </div>
-      <div class="instructions">
-        <div class="instruction-item">
-          Move Left: <span class="kbd">←</span>
-        </div>
-        <div class="instruction-item">
-          Move Right: <span class="kbd">→</span>
-        </div>
-        <div class="instruction-item">
-          Launch: <span class="kbd">Space</span>
+
+        <div id="instructionsPanel" class="instructions hidden">
+          <h3 class="instructions-heading">Game Controls</h3>
+          <div class="instructions-content">
+            <div class="instruction-item">
+              <span class="instruction-label">Move Left:</span>
+              <span class="kbd">←</span>
+            </div>
+            <div class="instruction-item">
+              <span class="instruction-label">Move Right:</span>
+              <span class="kbd">→</span>
+            </div>
+            <div class="instruction-item">
+              <span class="instruction-label">Launch Ball:</span>
+              <span class="kbd">Space</span>
+            </div>
+          </div>
         </div>
       </div>
     </main>
-
-    <!-- <button id="runButton">Start game</button> -->
     <script type="module" src="index.js"></script>
   </body>
 </html>
