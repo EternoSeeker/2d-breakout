@@ -61,10 +61,10 @@ class Ball extends GameObject {
 
   update(paddle, deltaTime) {
     if (this.locked) {
-      this.x = paddle.x + paddle.width / 2;
-      this.y = this.canvas.height - GameConfig.PADDLE.HEIGHT - this.radius;
-      this.actualX = this.x;
-      this.actualY = this.y;
+      this.actualX = paddle.x + paddle.width / 2;
+      this.actualY = this.canvas.height - GameConfig.PADDLE.HEIGHT - this.radius;
+      this.x = Math.floor(this.actualX);
+      this.y = Math.floor(this.actualY);
       return;
     }
 
@@ -91,8 +91,8 @@ class Ball extends GameObject {
     this.actualY += this.yDir * this.dy * deltaTime;
 
     // Update integer positions for rendering
-    this.x = Math.round(this.actualX);
-    this.y = Math.round(this.actualY);
+    this.x = Math.floor(this.actualX);
+    this.y = Math.floor(this.actualY);
   }
 
   checkWallCollision(deltaTime) {

@@ -6,12 +6,12 @@ import LevelManager from "./managers/LevelManager.js";
 class Game {
   constructor(canvasId) {
     this.canvas = document.getElementById(canvasId);
-    this.ctx = this.canvas.getContext("2d");
+    this.ctx = this.canvas.getContext("2d", { alpha: false });
 
     this.gameState = "idle";
     this.lastTime = 0;
     this.accumulator = 0;
-    this.step = 1 / 60;
+    this.step = 1 / 120;
 
     this.ball = new Ball(this.canvas);
     this.paddle = new Paddle(this.canvas);
@@ -108,7 +108,7 @@ class Game {
   }
 
   advanceToNextLevel() {
-    if(this.gameState !== "playing") return;
+    if (this.gameState !== "playing") return;
     const hasNextLevel = this.levelManager.nextLevel();
     if (!hasNextLevel) {
       this.gameState = "won";
@@ -123,6 +123,9 @@ class Game {
     // Clear canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+    this.ctx.fillStyle = "#FFFFFF";
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    
     // Draw game objects
     this.levelManager.bricks.forEach((brick) => brick.draw(this.ctx));
     this.ball.draw(this.ctx);
@@ -160,7 +163,7 @@ class Game {
     setTimeout(() => {
       if (this.gameState === "won") {
         alert("Congratulations! You completed all levels!");
-      } else if(this.gameState === "lost") {
+      } else if (this.gameState === "lost") {
         alert("Game Over!");
       }
     }, 0);
