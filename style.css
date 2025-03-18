@@ -69,6 +69,7 @@ main {
 .stats-container {
   display: flex;
   gap: 1.5rem;
+  align-items: center;
 }
 
 .stat-item {
@@ -91,6 +92,24 @@ main {
   padding: 0.2rem 0.6rem;
   border-radius: 0.3rem;
   min-width: 2rem;
+}
+
+.hearts-container {
+  display: flex;
+  align-items: center;
+}
+
+.hearts-display {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.heart-icon {
+  color: #ff5252;
+  font-size: 1.5rem;
+  font-variation-settings: 'FILL' 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+  transition: opacity 0.3s ease;
 }
 
 .help-container {
@@ -126,6 +145,17 @@ main {
 .material-symbols-outlined {
   color: #1c2f7a;
   font-size: 1.2rem;
+  font-variation-settings: 
+    'FILL' 0, 
+    'wght' 400, 
+    'GRAD' 0, 
+    'opsz' 48;
+}
+
+.material-symbols-outlined.heart-icon {
+  color: #ff5252;
+  font-size: 1.5rem;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;
 }
 
 canvas {
@@ -199,7 +229,6 @@ canvas:hover {
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
-
 .hidden {
   display: none;
 }
@@ -240,11 +269,17 @@ canvas:hover {
   .stats-container {
     gap: 1rem;
   }
-  .help-button{
+  
+  .help-button {
     padding: 0.3rem 0.6rem;
   }
-  .help-text{
+  
+  .help-text {
     font-size: 1rem;
+  }
+  
+  .heart-icon {
+    font-size: 1.3rem;
   }
 }
 
@@ -274,5 +309,9 @@ canvas:hover {
   .stat-label,
   .stat-value {
     font-size: 1rem;
+  }
+  
+  .heart-icon {
+    font-size: 1.2rem;
   }
 }
