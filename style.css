@@ -161,7 +161,7 @@ main {
 canvas {
   background: #f5f5f5;
   box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.5);
-  border: 0.2rem solid #dfdfdf;
+  border: 0.2rem solid #000000;
   border-radius: 0.5rem;
   transition: box-shadow 0.3s ease;
   width: 100%;

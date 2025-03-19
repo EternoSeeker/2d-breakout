@@ -27,9 +27,9 @@ class Paddle extends GameObject {
       this.x,
       this.y + this.height
     );
-    gradient.addColorStop(0, "#3388CC");
-    gradient.addColorStop(0.7, this.color);
-    gradient.addColorStop(1, this.color);
+    gradient.addColorStop(0, this.color);
+    gradient.addColorStop(0.7, "#9DAFB8");
+    gradient.addColorStop(1, "#5C7684");
 
     ctx.beginPath();
     ctx.roundRect(

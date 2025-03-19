@@ -123,7 +123,7 @@ class Game {
     // Clear canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    this.ctx.fillStyle = "#FFFFFF";
+    this.ctx.fillStyle = "#050321";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     
     // Draw game objects

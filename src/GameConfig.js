@@ -5,14 +5,14 @@ const GameConfig = {
     WIDTH: 88,
     BORDER_RADIUS: 7,
     SPEED: 500,
-    COLOR: "#00538f",
+    COLOR: "#D9E8F7",
   },
   BALL: {
     RADIUS: 9,
     MIN_SPEED: 300,
     MAX_SPEED: 475,
     FRICTION: 10,
-    COLOR: "#D19E3F",
+    COLOR: "#FFBB3C",
   },
   BRICK: {
     ROW_COUNT: 4,
@@ -22,7 +22,8 @@ const GameConfig = {
     PADDING: 5,
     OFFSET_TOP: 30,
     OFFSET_LEFT: 25,
-    COLORS: { 1: "0095dd", 2: "1b63ab", 3: "37327a", 4: "520048" },
+    COLORS : {1 : "26FC9C", 2: "26FCFC", 3: "5881FC", 4:"B126FC", 5:"FC266A"}
+    //COLORS: { 1: "0095dd", 2: "1b63ab", 3: "37327a", 4: "520048" FF2C56},
   },
 };
 

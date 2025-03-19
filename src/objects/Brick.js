@@ -12,19 +12,9 @@ class Brick extends GameObject {
     if (this.strength > 0) {
       const baseColor = `#${GameConfig.BRICK.COLORS[this.strength]}`;
 
-      const gradient = ctx.createLinearGradient(
-        this.x,
-        this.y,
-        this.x,
-        this.y + this.height
-      );
-      gradient.addColorStop(0, baseColor);
-      gradient.addColorStop(0.8, baseColor);
-      gradient.addColorStop(1, "#4c6476");
-
       ctx.beginPath();
-      ctx.rect(this.x, this.y, this.width, this.height);
-      ctx.fillStyle = gradient;
+      ctx.roundRect(this.x, this.y, this.width, this.height, 1);
+      ctx.fillStyle = baseColor;
       ctx.fill();
       ctx.closePath();
     }

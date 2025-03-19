@@ -33,9 +33,8 @@ class Ball extends GameObject {
       this.radius
     );
 
-    gradient.addColorStop(0.3, "#d7ac5b");
-    gradient.addColorStop(0.8, this.color);
-    gradient.addColorStop(1, "#a47928aa");
+    gradient.addColorStop(0.6, this.color);
+    gradient.addColorStop(1, "#B37400");
 
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
