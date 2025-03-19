@@ -1,4 +1,3 @@
-// Game configuration settings
 const GameConfig = {
   PADDLE: {
     HEIGHT: 16,
@@ -23,7 +22,6 @@ const GameConfig = {
     OFFSET_TOP: 30,
     OFFSET_LEFT: 25,
     COLORS : {1 : "26FC9C", 2: "26FCFC", 3: "5881FC", 4:"B126FC", 5:"FC266A"}
-    //COLORS: { 1: "0095dd", 2: "1b63ab", 3: "37327a", 4: "520048" FF2C56},
   },
 };
 
