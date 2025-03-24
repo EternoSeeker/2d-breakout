@@ -55,7 +55,7 @@ main {
 .game-info {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   max-width: 700px;
   width: 100%;
   margin-bottom: 1rem;
@@ -86,7 +86,6 @@ main {
   background: rgba(0, 0, 0, 0.3);
   padding: 0.2rem 0.6rem;
   border-radius: 0.3rem;
-  min-width: 2rem;
 }
 
 .hearts-container {
@@ -147,7 +146,7 @@ main {
   color: #1c2f7a;
 }
 
-.material-symbols-outlined {
+.material-symbols-outlined.question {
   color: #1c2f7a;
   font-size: 1.2rem;
   font-variation-settings: 
@@ -251,6 +250,10 @@ canvas:hover {
     font-size: 2.25rem;
   }
 
+  .game-info{
+    margin-bottom: 0.5rem;
+  }
+
   .levelDisplay {
     font-size: 1.5rem;
   }
@@ -275,6 +278,11 @@ canvas:hover {
     max-width: 65%;
   }
 
+  .stat-label,
+  .stat-value {
+    font-size: 1rem;
+  }
+
   .stats-container {
     gap: 1rem;
   }
@@ -284,11 +292,14 @@ canvas:hover {
   }
   
   .help-text {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
   
-  .heart-icon {
-    font-size: 1.3rem;
+  .material-symbols-outlined.question{
+    font-size: 1rem;
+  }
+  .material-symbols-outlined.heart-icon{
+    font-size: 1.2rem;
   }
 }
 
@@ -316,14 +327,5 @@ canvas:hover {
 
   .help-container {
     margin-left: 0;
-  }
-
-  .stat-label,
-  .stat-value {
-    font-size: 1rem;
-  }
-  
-  .heart-icon {
-    font-size: 1.2rem;
   }
 }
