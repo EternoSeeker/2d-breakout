@@ -25,6 +25,11 @@ class Game {
 
     this.setupControls();
     this.initGame();
+
+    // Touch control variables
+    this.lastTapTime = 0;
+    this.touchStartX = 0;
+    this.touchHolding = false;
   }
 
   async initGame() {
@@ -60,6 +65,72 @@ class Game {
     });
 
     this.keyState = keyState;
+    this.setupTouchControls();
+  }
+
+  setupTouchControls() {
+    // Touch start event
+    this.canvas.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const canvasRect = this.canvas.getBoundingClientRect();
+      const touchX = touch.clientX - canvasRect.left;
+
+      this.touchStartX = touchX;
+      this.touchHolding = true;
+
+      // Check for double tap to launch ball
+      const currentTime = new Date().getTime();
+      const tapLength = currentTime - this.lastTapTime;
+      if (tapLength < 300 && tapLength > 0 && this.ball.locked) {
+        this.ball.launch();
+      }
+      this.lastTapTime = currentTime;
+
+      // Set paddle movement based on touch position
+      if (touchX > this.canvas.width / 2) {
+        this.keyState.right = true;
+        this.keyState.left = false;
+      } else {
+        this.keyState.left = true;
+        this.keyState.right = false;
+      }
+    });
+
+    // Touch move event
+    this.canvas.addEventListener("touchmove", (e) => {
+      e.preventDefault();
+      if (!this.touchHolding) return;
+
+      const touch = e.touches[0];
+      const canvasRect = this.canvas.getBoundingClientRect();
+      const touchX = touch.clientX - canvasRect.left;
+
+      // Update paddle movement based on current touch position
+      if (touchX > this.canvas.width / 2) {
+        this.keyState.right = true;
+        this.keyState.left = false;
+      } else {
+        this.keyState.left = true;
+        this.keyState.right = false;
+      }
+    });
+
+    // Touch end event
+    this.canvas.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      this.touchHolding = false;
+      this.keyState.right = false;
+      this.keyState.left = false;
+    });
+
+    // Touch cancel event
+    this.canvas.addEventListener("touchcancel", (e) => {
+      e.preventDefault();
+      this.touchHolding = false;
+      this.keyState.right = false;
+      this.keyState.left = false;
+    });
   }
 
   update(deltaTime) {
@@ -125,7 +196,7 @@ class Game {
 
     this.ctx.fillStyle = "#050321";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    
+
     // Draw game objects
     this.levelManager.bricks.forEach((brick) => brick.draw(this.ctx));
     this.ball.draw(this.ctx);
