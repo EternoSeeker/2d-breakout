@@ -26,20 +26,12 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 0.3rem 0.6rem rgba(0, 0, 0, 0.5);
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.2rem;
   font-family: "Bruno Ace SC", sans-serif;
 }
 
 .headers {
-  margin: 1.5rem auto;
-}
-
-#levelDisplay {
-  color: #f1ffd7;
-  font-size: 1.8rem;
-  font-weight: bold;
-  margin: auto;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  margin: 1rem auto;
 }
 
 main {
@@ -63,8 +55,8 @@ main {
 .game-info {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  max-width: 600px;
+  align-items: baseline;
+  max-width: 700px;
   width: 100%;
   margin-bottom: 1rem;
 }
@@ -115,6 +107,16 @@ main {
   transition: opacity 0.3s ease;
 }
 
+.levelDisplay {
+  color: #f1ffd7;
+  font-size: 1.8rem;
+  font-weight: bold;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  display: inline-block;
+  margin: 0 auto;
+}
+
+
 .help-container {
   margin-left: auto;
 }
@@ -123,11 +125,12 @@ main {
   font-family: "Jura", serif;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.3rem;
   background: rgb(233, 244, 255);
   border: none;
-  border-radius: 50px;
-  padding: 0.5rem 1rem;
+  border-radius: 1.5rem;
+  padding: 0.5rem 0.8rem;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.3);
@@ -167,7 +170,7 @@ canvas {
   border-radius: 0.5rem;
   transition: box-shadow 0.3s ease;
   width: 100%;
-  max-width: 600px;
+  max-width:700px;
   height: auto;
 }
 
@@ -201,7 +204,7 @@ canvas:hover {
 .instructions-content {
   display: flex;
   justify-content: center;
-  gap: 2rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -248,18 +251,18 @@ canvas:hover {
     font-size: 2.25rem;
   }
 
-  #levelDisplay {
+  .levelDisplay {
     font-size: 1.5rem;
   }
 
   canvas {
-    max-width: 70%;
+    max-width: 65%;
   }
 
   .instructions {
-    font-size: 0.9rem;
-    padding: 0.8rem;
-    max-width: 70%;
+    font-size: 1rem;
+    padding: 0.7rem;
+    max-width: 65%;
   }
 
   .kbd {
@@ -269,7 +272,7 @@ canvas:hover {
 
   .game-info {
     justify-content: space-between;
-    max-width: 70%;
+    max-width: 65%;
   }
 
   .stats-container {
@@ -294,13 +297,16 @@ canvas:hover {
     font-size: 1.75rem;
   }
 
-  #levelDisplay {
+  .levelDisplay {
     font-size: 1.25rem;
+  }
+  .instructions{
+    font-size: 0.8rem;
   }
 
   .instructions-content {
     flex-direction: column;
-    gap: 0.7rem;
+    gap: 0.8rem;
   }
 
   .game-info {

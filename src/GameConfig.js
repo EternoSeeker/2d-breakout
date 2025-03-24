@@ -16,11 +16,11 @@ const GameConfig = {
   BRICK: {
     ROW_COUNT: 4,
     COLUMN_COUNT: 7,
-    WIDTH: 75,
-    HEIGHT: 18,
+    WIDTH: 82,
+    HEIGHT: 20,
     PADDING: 5,
     OFFSET_TOP: 30,
-    OFFSET_LEFT: 25,
+    OFFSET_LEFT: 50,
     COLORS : {1 : "26FC9C", 2: "26FCFC", 3: "5881FC", 4:"B126FC", 5:"FC266A"}
   },
 };

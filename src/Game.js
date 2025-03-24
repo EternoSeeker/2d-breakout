@@ -25,11 +25,6 @@ class Game {
 
     this.setupControls();
     this.initGame();
-
-    // Touch control variables
-    this.lastTapTime = 0;
-    this.touchStartX = 0;
-    this.touchHolding = false;
   }
 
   async initGame() {
@@ -41,53 +36,42 @@ class Game {
   }
 
   setupControls() {
-    const keyState = {
-      right: false,
-      left: false,
-    };
+    this.keyState = { right: false, left: false };
 
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Right" || e.key === "ArrowRight") {
-        keyState.right = true;
-      } else if (e.key === "Left" || e.key === "ArrowLeft") {
-        keyState.left = true;
-      } else if (e.key === " " && this.ball.locked) {
-        this.ball.launch();
-      }
+      if (e.key === "ArrowRight") this.keyState.right = true;
+      else if (e.key === "ArrowLeft") this.keyState.left = true;
+      else if (e.key === " " && this.ball.locked) this.ball.launch();
     });
 
     document.addEventListener("keyup", (e) => {
-      if (e.key === "Right" || e.key === "ArrowRight") {
-        keyState.right = false;
-      } else if (e.key === "Left" || e.key === "ArrowLeft") {
-        keyState.left = false;
-      }
+      if (e.key === "ArrowRight") this.keyState.right = false;
+      else if (e.key === "ArrowLeft") this.keyState.left = false;
     });
 
-    this.keyState = keyState;
     this.setupTouchControls();
   }
 
   setupTouchControls() {
-    // Touch start event
+    let lastTapTime = 0;
+    let touchStartX = 0;
+
     this.canvas.addEventListener("touchstart", (e) => {
       e.preventDefault();
+      if (e.touches.length === 0) return;
       const touch = e.touches[0];
-      const canvasRect = this.canvas.getBoundingClientRect();
-      const touchX = touch.clientX - canvasRect.left;
+      const touchX = touch.clientX - this.canvas.getBoundingClientRect().left;
 
-      this.touchStartX = touchX;
-      this.touchHolding = true;
+      touchStartX = touchX;
 
-      // Check for double tap to launch ball
+      // Detect double-tap to launch ball
       const currentTime = new Date().getTime();
-      const tapLength = currentTime - this.lastTapTime;
-      if (tapLength < 300 && tapLength > 0 && this.ball.locked) {
+      if (currentTime - lastTapTime < 300 && this.ball.locked) {
         this.ball.launch();
       }
-      this.lastTapTime = currentTime;
+      lastTapTime = currentTime;
 
-      // Set paddle movement based on touch position
+      // Move paddle based on touch position
       if (touchX > this.canvas.width / 2) {
         this.keyState.right = true;
         this.keyState.left = false;
@@ -97,37 +81,23 @@ class Game {
       }
     });
 
-    // Touch move event
     this.canvas.addEventListener("touchmove", (e) => {
       e.preventDefault();
-      if (!this.touchHolding) return;
-
+      if (e.touches.length === 0) return;
       const touch = e.touches[0];
-      const canvasRect = this.canvas.getBoundingClientRect();
-      const touchX = touch.clientX - canvasRect.left;
+      const touchX = touch.clientX - this.canvas.getBoundingClientRect().left;
 
-      // Update paddle movement based on current touch position
-      if (touchX > this.canvas.width / 2) {
+      // Move paddle dynamically
+      if (touchX > touchStartX + 10) {
         this.keyState.right = true;
         this.keyState.left = false;
-      } else {
+      } else if (touchX < touchStartX - 10) {
         this.keyState.left = true;
         this.keyState.right = false;
       }
     });
 
-    // Touch end event
-    this.canvas.addEventListener("touchend", (e) => {
-      e.preventDefault();
-      this.touchHolding = false;
-      this.keyState.right = false;
-      this.keyState.left = false;
-    });
-
-    // Touch cancel event
-    this.canvas.addEventListener("touchcancel", (e) => {
-      e.preventDefault();
-      this.touchHolding = false;
+    this.canvas.addEventListener("touchend", () => {
       this.keyState.right = false;
       this.keyState.left = false;
     });
